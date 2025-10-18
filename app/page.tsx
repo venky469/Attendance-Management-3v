@@ -1,0 +1,3734 @@
+
+// // // // // // // "use client"
+
+// // // // // // // import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+// // // // // // // import BarChartCard from "@/components/dashboard/bar-chart-card"
+// // // // // // // import LineChartCard from "@/components/dashboard/line-chart-card"
+// // // // // // // import { useEffect, useState } from "react"
+// // // // // // // import { getStoredUser, hasMinimumRole, type User } from "@/lib/auth"
+// // // // // // // import { Button } from "@/components/ui/button"
+// // // // // // // import { Users, UserCheck, Calendar, FileText, ClipboardList, CheckCircle } from "lucide-react"
+// // // // // // // import Link from "next/link"
+// // // // // // // import useSWR from "swr"
+// // // // // // // import LiveTimeDisplay from "@/components/live-time-display"
+// // // // // // // import { AttendanceCalendar } from "@/components/attendance-calendar"
+
+// // // // // // // type Summary = {
+// // // // // // //   todayPresent: number
+// // // // // // //   todayAbsent: number
+// // // // // // //   todayLeave: number // Added todayLeave field
+// // // // // // //   byDepartment: { name: string; present: number; absent: number }[]
+// // // // // // //   byRole: { name: string; present: number; absent: number }[]
+// // // // // // //   byShift: { name: string; present: number; absent: number }[]
+// // // // // // //   last7Days: { date: string; present: number; absent: number }[]
+// // // // // // //   totalPeople: number
+// // // // // // // }
+
+// // // // // // // const fetcher = (url: string) => fetch(url).then((r) => r.json())
+
+// // // // // // // export default function DashboardPage() {
+// // // // // // //   const [summary, setSummary] = useState<Summary | null>(null)
+// // // // // // //   const [user, setUser] = useState<User | null>(null)
+// // // // // // //   const [loading, setLoading] = useState(true)
+// // // // // // //   const [leaveStats, setLeaveStats] = useState({ pending: 0, myRequests: 0 })
+
+// // // // // // //   const { data: studentAttendance } = useSWR(
+// // // // // // //     user?.role === "Student" ? `/api/students/${user.id}/attendance` : null,
+// // // // // // //     fetcher,
+// // // // // // //   )
+
+// // // // // // //   useEffect(() => {
+// // // // // // //     const storedUser = getStoredUser()
+// // // // // // //     setUser(storedUser)
+
+// // // // // // //     const fetchSummary = async () => {
+// // // // // // //       try {
+// // // // // // //         const inst = storedUser?.role !== "SuperAdmin" ? storedUser?.institutionName : undefined
+// // // // // // //         const url = inst ? `/api/reports/summary?institutionName=${encodeURIComponent(inst)}` : "/api/reports/summary"
+// // // // // // //         const res = await fetch(url, { cache: "no-store" })
+// // // // // // //         if (res.ok) {
+// // // // // // //           const data = await res.json()
+// // // // // // //           setSummary(data)
+// // // // // // //         }
+// // // // // // //       } catch (error) {
+// // // // // // //         console.error("Failed to fetch summary:", error)
+// // // // // // //       } finally {
+// // // // // // //         setLoading(false)
+// // // // // // //       }
+// // // // // // //     }
+
+// // // // // // //     const fetchLeaveStats = async () => {
+// // // // // // //       if (!storedUser) return
+
+// // // // // // //       try {
+// // // // // // //         // Fetch user's own leave requests
+// // // // // // //         const myRequestsRes = await fetch(`/api/leave-requests?personId=${storedUser.id}`)
+// // // // // // //         if (myRequestsRes.ok) {
+// // // // // // //           const myData = await myRequestsRes.json()
+// // // // // // //           const myRequestsCount = myData.leaveRequests?.length || 0
+
+// // // // // // //           let pendingCount = 0
+// // // // // // //           // If user can approve requests, fetch pending count
+// // // // // // //           if (hasMinimumRole("Manager")) {
+// // // // // // //             const inst = storedUser?.role !== "SuperAdmin" ? storedUser?.institutionName : undefined
+// // // // // // //             const pUrl = `/api/leave-requests?status=pending${inst ? `&institutionName=${encodeURIComponent(inst)}` : ""}`
+// // // // // // //             const pendingRes = await fetch(pUrl)
+// // // // // // //             if (pendingRes.ok) {
+// // // // // // //               const pendingData = await pendingRes.json()
+// // // // // // //               pendingCount = pendingData.leaveRequests?.length || 0
+// // // // // // //             }
+// // // // // // //           }
+
+// // // // // // //           setLeaveStats({ pending: pendingCount, myRequests: myRequestsCount })
+// // // // // // //         }
+// // // // // // //       } catch (error) {
+// // // // // // //         console.error("Failed to fetch leave stats:", error)
+// // // // // // //       }
+// // // // // // //     }
+
+// // // // // // //     fetchSummary()
+// // // // // // //     fetchLeaveStats()
+// // // // // // //   }, [])
+
+// // // // // // //   if (loading || !user) {
+// // // // // // //     return (
+// // // // // // //       <div className="flex items-center justify-center min-h-[400px]">
+// // // // // // //         <div className="text-center">
+// // // // // // //           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
+// // // // // // //           <p className="text-gray-600">Loading dashboard...</p>
+// // // // // // //         </div>
+// // // // // // //       </div>
+// // // // // // //     )
+// // // // // // //   }
+
+// // // // // // //   if (user.role === "Student") {
+// // // // // // //     const stats = studentAttendance?.stats || {
+// // // // // // //       attendancePercentage: 0,
+// // // // // // //       presentDays: 0,
+// // // // // // //       totalDays: 0,
+// // // // // // //     }
+
+// // // // // // //     const attendanceData = {
+// // // // // // //       present: studentAttendance?.records?.filter((r: any) => r.status === "present") || [],
+// // // // // // //       absent: studentAttendance?.records?.filter((r: any) => r.status === "absent") || [],
+// // // // // // //       late: studentAttendance?.records?.filter((r: any) => r.status === "late") || [],
+// // // // // // //       leave: studentAttendance?.records?.filter((r: any) => r.status === "leave") || [], // Added leave records
+// // // // // // //     }
+
+// // // // // // //     return (
+// // // // // // //       <div className="space-y-6">
+// // // // // // //         {user.institutionName && (
+// // // // // // //           <div className="inline-flex items-center gap-2 text-xs font-medium text-teal-700 bg-teal-50 border border-teal-200 px-2 py-1 rounded">
+// // // // // // //             {user.institutionName}
+// // // // // // //           </div>
+// // // // // // //         )}
+// // // // // // //         <header className="space-y-1">
+// // // // // // //           <h1 className="text-balance text-3xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
+// // // // // // //             Welcome back, {user.name}!
+// // // // // // //           </h1>
+// // // // // // //           <p className="text-sm text-gray-600">Student Dashboard - View your attendance and quick actions.</p>
+// // // // // // //         </header>
+
+// // // // // // //         <LiveTimeDisplay />
+
+// // // // // // //         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+// // // // // // //           <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // // // // //             <CardHeader>
+// // // // // // //               <CardTitle className="text-blue-700 flex items-center gap-2">
+// // // // // // //                 <div className="p-1 bg-blue-200 rounded-lg">
+// // // // // // //                   <UserCheck className="h-4 w-4" />
+// // // // // // //                 </div>
+// // // // // // //                 My Attendance Rate
+// // // // // // //               </CardTitle>
+// // // // // // //             </CardHeader>
+// // // // // // //             <CardContent>
+// // // // // // //               <div className="text-4xl font-bold text-blue-700 mb-2">{stats.attendancePercentage}%</div>
+// // // // // // //               <p className="text-sm text-blue-600">This month</p>
+// // // // // // //             </CardContent>
+// // // // // // //           </Card>
+
+// // // // // // //           <Card className="bg-gradient-to-br from-green-50 to-emerald-100 border-green-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // // // // //             <CardHeader>
+// // // // // // //               <CardTitle className="text-green-700 flex items-center gap-2">
+// // // // // // //                 <div className="p-1 bg-green-200 rounded-lg">
+// // // // // // //                   <Calendar className="h-4 w-4" />
+// // // // // // //                 </div>
+// // // // // // //                 Present Days
+// // // // // // //               </CardTitle>
+// // // // // // //             </CardHeader>
+// // // // // // //             <CardContent>
+// // // // // // //               <div className="text-4xl font-bold text-green-700 mb-2">{stats.presentDays}</div>
+// // // // // // //               <p className="text-sm text-green-600">Out of {stats.totalDays} days</p>
+// // // // // // //             </CardContent>
+// // // // // // //           </Card>
+
+// // // // // // //           <Card className="bg-gradient-to-br from-orange-50 to-red-100 border-orange-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // // // // //             <CardHeader>
+// // // // // // //               <CardTitle className="text-orange-700 flex items-center gap-2">
+// // // // // // //                 <div className="p-1 bg-orange-200 rounded-lg">
+// // // // // // //                   <ClipboardList className="h-4 w-4" />
+// // // // // // //                 </div>
+// // // // // // //                 Leave Requests
+// // // // // // //               </CardTitle>
+// // // // // // //             </CardHeader>
+// // // // // // //             <CardContent>
+// // // // // // //               <div className="text-4xl font-bold text-orange-700 mb-2">{leaveStats.myRequests}</div>
+// // // // // // //               <p className="text-sm text-orange-600">Total requests</p>
+// // // // // // //             </CardContent>
+// // // // // // //           </Card>
+// // // // // // //         </div>
+
+// // // // // // //         <AttendanceCalendar attendanceData={attendanceData} />
+
+// // // // // // //         <Card className="shadow-lg">
+// // // // // // //           <CardHeader>
+// // // // // // //             <CardTitle className="text-gray-800">Recent Attendance</CardTitle>
+// // // // // // //           </CardHeader>
+// // // // // // //           <CardContent>
+// // // // // // //             {studentAttendance?.records?.slice(0, 5).map((record: any) => (
+// // // // // // //               <div
+// // // // // // //                 key={record.id}
+// // // // // // //                 className="flex justify-between items-center py-3 border-b last:border-b-0 hover:bg-gray-50 rounded-lg px-2 transition-colors duration-200"
+// // // // // // //               >
+// // // // // // //                 <span className="text-sm text-gray-700 font-medium">
+// // // // // // //                   {new Date(record.date).toLocaleDateString("en-US", {
+// // // // // // //                     weekday: "short",
+// // // // // // //                     month: "short",
+// // // // // // //                     day: "numeric",
+// // // // // // //                   })}
+// // // // // // //                 </span>
+// // // // // // //                 <span
+// // // // // // //                   className={`px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
+// // // // // // //                     record.status === "present"
+// // // // // // //                       ? "bg-green-100 text-green-800 border border-green-200"
+// // // // // // //                       : record.status === "absent"
+// // // // // // //                         ? "bg-red-100 text-red-800 border border-red-200"
+// // // // // // //                         : record.status === "late"
+// // // // // // //                           ? "bg-amber-100 text-amber-800 border border-amber-200"
+// // // // // // //                           : "bg-orange-100 text-orange-800 border border-orange-200"
+// // // // // // //                   }`}
+// // // // // // //                 >
+// // // // // // //                   {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+// // // // // // //                 </span>
+// // // // // // //               </div>
+// // // // // // //             )) || <p className="text-sm text-gray-500 text-center py-8">No attendance records found</p>}
+// // // // // // //           </CardContent>
+// // // // // // //         </Card>
+// // // // // // //       </div>
+// // // // // // //     )
+// // // // // // //   }
+
+// // // // // // //   if (!summary) {
+// // // // // // //     return (
+// // // // // // //       <div className="flex items-center justify-center min-h-[400px]">
+// // // // // // //         <div className="text-center">
+// // // // // // //           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
+// // // // // // //           <p className="text-gray-600">Loading dashboard...</p>
+// // // // // // //         </div>
+// // // // // // //       </div>
+// // // // // // //     )
+// // // // // // //   }
+
+// // // // // // //   return (
+// // // // // // //     <div className="space-y-6">
+// // // // // // //       {user.institutionName && (
+// // // // // // //         <div className="inline-flex items-center gap-2 text-xs font-medium text-teal-700 bg-teal-50 border border-teal-200 px-2 py-1 rounded">
+// // // // // // //           {user.institutionName}
+// // // // // // //         </div>
+// // // // // // //       )}
+// // // // // // //       <header className="space-y-1">
+// // // // // // //         <h1 className="text-balance text-3xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
+// // // // // // //           Welcome back, {user.name}!
+// // // // // // //         </h1>
+// // // // // // //         <p className="text-sm text-gray-600">
+// // // // // // //           {user.role} Dashboard - Real-time overview by department, role, shift, and trends.
+// // // // // // //         </p>
+// // // // // // //       </header>
+
+// // // // // // //       <LiveTimeDisplay />
+
+// // // // // // //       {hasMinimumRole("Manager") && (
+// // // // // // //         <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+// // // // // // //           <Link href="/staff">
+// // // // // // //             <Button
+// // // // // // //               variant="outline"
+// // // // // // //               className="h-24 w-full flex-col space-y-2 hover:bg-teal-50 hover:border-teal-300 bg-gradient-to-br from-white to-teal-50 shadow-md hover:shadow-lg transition-all duration-200 border-teal-200"
+// // // // // // //             >
+// // // // // // //               <div className="p-2 bg-teal-100 rounded-lg">
+// // // // // // //                 <Users className="h-6 w-6 text-teal-600" />
+// // // // // // //               </div>
+// // // // // // //               <span className="text-sm font-semibold text-teal-700">Manage Staff</span>
+// // // // // // //             </Button>
+// // // // // // //           </Link>
+
+// // // // // // //           {hasMinimumRole("Manager") && (
+// // // // // // //             <Link href="/students">
+// // // // // // //               <Button
+// // // // // // //                 variant="outline"
+// // // // // // //                 className="h-24 w-full flex-col space-y-2 hover:bg-blue-50 hover:border-blue-300 bg-gradient-to-br from-white to-blue-50 shadow-md hover:shadow-lg transition-all duration-200 border-blue-200"
+// // // // // // //               >
+// // // // // // //                 <div className="p-2 bg-blue-100 rounded-lg">
+// // // // // // //                   <UserCheck className="h-6 w-6 text-blue-600" />
+// // // // // // //                 </div>
+// // // // // // //                 <span className="text-sm font-semibold text-blue-700">Manage Students</span>
+// // // // // // //               </Button>
+// // // // // // //             </Link>
+// // // // // // //           )}
+
+// // // // // // //           <Link href="/attendance">
+// // // // // // //             <Button
+// // // // // // //               variant="outline"
+// // // // // // //               className="h-24 w-full flex-col space-y-2 hover:bg-green-50 hover:border-green-300 bg-gradient-to-br from-white to-green-50 shadow-md hover:shadow-lg transition-all duration-200 border-green-200"
+// // // // // // //             >
+// // // // // // //               <div className="p-2 bg-green-100 rounded-lg">
+// // // // // // //                 <Calendar className="h-6 w-6 text-green-600" />
+// // // // // // //               </div>
+// // // // // // //               <span className="text-sm font-semibold text-green-700">Attendance</span>
+// // // // // // //             </Button>
+// // // // // // //           </Link>
+
+// // // // // // //           <Link href="/leave-approval">
+// // // // // // //             <Button
+// // // // // // //               variant="outline"
+// // // // // // //               className="h-24 w-full flex-col space-y-2 hover:bg-orange-50 hover:border-orange-300 bg-gradient-to-br from-white to-orange-50 shadow-md hover:shadow-lg transition-all duration-200 border-orange-200 relative"
+// // // // // // //             >
+// // // // // // //               <div className="p-2 bg-orange-100 rounded-lg">
+// // // // // // //                 <CheckCircle className="h-6 w-6 text-orange-600" />
+// // // // // // //               </div>
+// // // // // // //               <span className="text-sm font-semibold text-orange-700">Leave Approval</span>
+// // // // // // //               {leaveStats.pending > 0 && (
+// // // // // // //                 <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
+// // // // // // //                   {leaveStats.pending}
+// // // // // // //                 </div>
+// // // // // // //               )}
+// // // // // // //             </Button>
+// // // // // // //           </Link>
+
+// // // // // // //           {user.role === "Admin" && (
+// // // // // // //             <Link href="/reports">
+// // // // // // //               <Button
+// // // // // // //                 variant="outline"
+// // // // // // //                 className="h-24 w-full flex-col space-y-2 hover:bg-purple-50 hover:border-purple-300 bg-gradient-to-br from-white to-purple-50 shadow-md hover:shadow-lg transition-all duration-200 border-purple-200"
+// // // // // // //               >
+// // // // // // //                 <div className="p-2 bg-purple-100 rounded-lg">
+// // // // // // //                   <FileText className="h-6 w-6 text-purple-600" />
+// // // // // // //                 </div>
+// // // // // // //                 <span className="text-sm font-semibold text-purple-700">Reports</span>
+// // // // // // //               </Button>
+// // // // // // //             </Link>
+// // // // // // //           )}
+// // // // // // //         </div>
+// // // // // // //       )}
+
+// // // // // // //       {!hasMinimumRole("Manager") && (user.role as string) !== "Student" && (
+// // // // // // //         <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+// // // // // // //           <Link href="/faceid">
+// // // // // // //             <Button
+// // // // // // //               variant="outline"
+// // // // // // //               className="h-24 w-full flex-col space-y-2 hover:bg-green-50 hover:border-green-300 bg-gradient-to-br from-white to-green-50 shadow-md hover:shadow-lg transition-all duration-200 border-green-200"
+// // // // // // //             >
+// // // // // // //               <div className="p-2 bg-green-100 rounded-lg">
+// // // // // // //                 <UserCheck className="h-6 w-6 text-green-600" />
+// // // // // // //               </div>
+// // // // // // //               <span className="text-sm font-semibold text-green-700">Mark Attendance</span>
+// // // // // // //             </Button>
+// // // // // // //           </Link>
+
+// // // // // // //           <Link href="/student-attendance">
+// // // // // // //             <Button
+// // // // // // //               variant="outline"
+// // // // // // //               className="h-24 w-full flex-col space-y-2 hover:bg-blue-50 hover:border-blue-300 bg-gradient-to-br from-white to-blue-50 shadow-md hover:shadow-lg transition-all duration-200 border-blue-200"
+// // // // // // //             >
+// // // // // // //               <div className="p-2 bg-blue-100 rounded-lg">
+// // // // // // //                 <Calendar className="h-4 w-4 text-blue-600" />
+// // // // // // //               </div>
+// // // // // // //               <span className="text-sm font-semibold text-blue-700">My Attendance</span>
+// // // // // // //             </Button>
+// // // // // // //           </Link>
+
+// // // // // // //           <Link href="/leave-requests">
+// // // // // // //             <Button
+// // // // // // //               variant="outline"
+// // // // // // //               className="h-24 w-full flex-col space-y-2 hover:bg-orange-50 hover:border-orange-300 bg-gradient-to-br from-white to-orange-50 shadow-md hover:shadow-lg transition-all duration-200 border-orange-200"
+// // // // // // //             >
+// // // // // // //               <div className="p-2 bg-orange-100 rounded-lg">
+// // // // // // //                 <ClipboardList className="h-4 w-4 text-orange-600" />
+// // // // // // //               </div>
+// // // // // // //               <span className="text-sm font-semibold text-orange-700">Request Leave</span>
+// // // // // // //               {leaveStats.myRequests > 0 && (
+// // // // // // //                 <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
+// // // // // // //                   {leaveStats.myRequests}
+// // // // // // //                 </span>
+// // // // // // //               )}
+// // // // // // //             </Button>
+// // // // // // //           </Link>
+// // // // // // //         </div>
+// // // // // // //       )}
+
+// // // // // // //       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+// // // // // // //         <Card className="bg-gradient-to-br from-teal-50 to-cyan-100 border-teal-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // // // // //           <CardHeader>
+// // // // // // //             <CardTitle className="text-teal-700 flex items-center gap-2">
+// // // // // // //               <div className="p-1 bg-teal-200 rounded-lg">
+// // // // // // //                 <UserCheck className="h-4 w-4" />
+// // // // // // //               </div>
+// // // // // // //               Today Present
+// // // // // // //             </CardTitle>
+// // // // // // //           </CardHeader>
+// // // // // // //           <CardContent>
+// // // // // // //             <div className="text-4xl font-bold text-teal-700">{summary.todayPresent}</div>
+// // // // // // //           </CardContent>
+// // // // // // //         </Card>
+// // // // // // //         <Card className="bg-gradient-to-br from-amber-50 to-orange-100 border-amber-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // // // // //           <CardHeader>
+// // // // // // //             <CardTitle className="text-amber-700 flex items-center gap-2">
+// // // // // // //               <div className="p-1 bg-amber-200 rounded-lg">
+// // // // // // //                 <Users className="h-4 w-4" />
+// // // // // // //               </div>
+// // // // // // //               Today Absent
+// // // // // // //             </CardTitle>
+// // // // // // //           </CardHeader>
+// // // // // // //           <CardContent>
+// // // // // // //             <div className="text-4xl font-bold text-amber-700">{summary.todayAbsent}</div>
+// // // // // // //           </CardContent>
+// // // // // // //         </Card>
+// // // // // // //         <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // // // // //           <CardHeader>
+// // // // // // //             <CardTitle className="text-blue-700 flex items-center gap-2">
+// // // // // // //               <div className="p-1 bg-blue-200 rounded-lg">
+// // // // // // //                 <Calendar className="h-4 w-4" />
+// // // // // // //               </div>
+// // // // // // //               On Leave Today
+// // // // // // //             </CardTitle>
+// // // // // // //           </CardHeader>
+// // // // // // //           <CardContent>
+// // // // // // //             <div className="text-4xl font-bold text-blue-700">{summary.todayLeave || 0}</div>
+// // // // // // //           </CardContent>
+// // // // // // //         </Card>
+// // // // // // //       </div>
+
+// // // // // // //       {hasMinimumRole("Manager") && (
+// // // // // // //         <>
+// // // // // // //           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+// // // // // // //             <BarChartCard title="By Department (Today)" data={summary.byDepartment} />
+// // // // // // //             <BarChartCard title="By Role (Today)" data={summary.byRole} />
+// // // // // // //           </div>
+
+// // // // // // //           <LineChartCard title="Last 7 Days" data={summary.last7Days} />
+
+// // // // // // //           <BarChartCard title="By Shift (Today)" data={summary.byShift} />
+// // // // // // //         </>
+// // // // // // //       )}
+// // // // // // //     </div>
+// // // // // // //   )
+// // // // // // // }
+
+
+
+// // // // // // "use client"
+
+// // // // // // import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+// // // // // // import BarChartCard from "@/components/dashboard/bar-chart-card"
+// // // // // // import LineChartCard from "@/components/dashboard/line-chart-card"
+// // // // // // import { useEffect, useState } from "react"
+// // // // // // import { getStoredUser, hasMinimumRole, type User } from "@/lib/auth"
+// // // // // // import { Button } from "@/components/ui/button"
+// // // // // // import { Users, UserCheck, Calendar, FileText, ClipboardList, CheckCircle } from "lucide-react"
+// // // // // // import Link from "next/link"
+// // // // // // import useSWR from "swr"
+// // // // // // import LiveTimeDisplay from "@/components/live-time-display"
+// // // // // // import { AttendanceCalendar } from "@/components/attendance-calendar"
+
+// // // // // // type Summary = {
+// // // // // //   todayPresent: number
+// // // // // //   todayAbsent: number
+// // // // // //   todayLeave: number // Added todayLeave field
+// // // // // //   byDepartment: { name: string; present: number; absent: number }[]
+// // // // // //   byRole: { name: string; present: number; absent: number }[]
+// // // // // //   byShift: { name: string; present: number; absent: number }[]
+// // // // // //   last7Days: { date: string; present: number; absent: number }[]
+// // // // // //   totalPeople: number
+// // // // // // }
+
+// // // // // // const fetcher = (url: string) => fetch(url).then((r) => r.json())
+
+// // // // // // export default function DashboardPage() {
+// // // // // //   const [summary, setSummary] = useState<Summary | null>(null)
+// // // // // //   const [user, setUser] = useState<User | null>(null)
+// // // // // //   const [loading, setLoading] = useState(true)
+// // // // // //   const [leaveStats, setLeaveStats] = useState({ pending: 0, myRequests: 0 })
+
+// // // // // //   const isStudent = Boolean(user?.role?.toLowerCase?.() === "student")
+
+// // // // // //   const { data: studentAttendance } = useSWR(
+// // // // // //     isStudent && user?.id ? `/api/students/${user.id}/attendance` : null,
+// // // // // //     fetcher,
+// // // // // //   )
+
+// // // // // //   useEffect(() => {
+// // // // // //     const storedUser = getStoredUser()
+// // // // // //     setUser(storedUser)
+
+// // // // // //     const fetchSummary = async () => {
+// // // // // //       try {
+// // // // // //         const inst = storedUser?.role !== "SuperAdmin" ? storedUser?.institutionName : undefined
+// // // // // //         const url = inst ? `/api/reports/summary?institutionName=${encodeURIComponent(inst)}` : "/api/reports/summary"
+// // // // // //         const res = await fetch(url, { cache: "no-store" })
+// // // // // //         if (res.ok) {
+// // // // // //           const data = await res.json()
+// // // // // //           setSummary(data)
+// // // // // //         }
+// // // // // //       } catch (error) {
+// // // // // //         console.error("Failed to fetch summary:", error)
+// // // // // //       } finally {
+// // // // // //         setLoading(false)
+// // // // // //       }
+// // // // // //     }
+
+// // // // // //     const fetchLeaveStats = async () => {
+// // // // // //       if (!storedUser) return
+
+// // // // // //       try {
+// // // // // //         // Fetch user's own leave requests
+// // // // // //         const myRequestsRes = await fetch(`/api/leave-requests?personId=${storedUser.id}`)
+// // // // // //         if (myRequestsRes.ok) {
+// // // // // //           const myData = await myRequestsRes.json()
+// // // // // //           const myRequestsCount = myData.leaveRequests?.length || 0
+
+// // // // // //           let pendingCount = 0
+// // // // // //           // If user can approve requests, fetch pending count
+// // // // // //           if (hasMinimumRole("Manager")) {
+// // // // // //             const inst = storedUser?.role !== "SuperAdmin" ? storedUser?.institutionName : undefined
+// // // // // //             const pUrl = `/api/leave-requests?status=pending${inst ? `&institutionName=${encodeURIComponent(inst)}` : ""}`
+// // // // // //             const pendingRes = await fetch(pUrl)
+// // // // // //             if (pendingRes.ok) {
+// // // // // //               const pendingData = await pendingRes.json()
+// // // // // //               pendingCount = pendingData.leaveRequests?.length || 0
+// // // // // //             }
+// // // // // //           }
+
+// // // // // //           setLeaveStats({ pending: pendingCount, myRequests: myRequestsCount })
+// // // // // //         }
+// // // // // //       } catch (error) {
+// // // // // //         console.error("Failed to fetch leave stats:", error)
+// // // // // //       }
+// // // // // //     }
+
+// // // // // //     fetchSummary()
+// // // // // //     fetchLeaveStats()
+// // // // // //   }, [])
+
+// // // // // //   if (loading || !user) {
+// // // // // //     return (
+// // // // // //       <div className="flex items-center justify-center min-h-[400px]">
+// // // // // //         <div className="text-center">
+// // // // // //           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
+// // // // // //           <p className="text-gray-600">Loading dashboard...</p>
+// // // // // //         </div>
+// // // // // //       </div>
+// // // // // //     )
+// // // // // //   }
+
+// // // // // //   if (isStudent) {
+// // // // // //     const stats = studentAttendance?.stats || {
+// // // // // //       attendancePercentage: 0,
+// // // // // //       presentDays: 0,
+// // // // // //       totalDays: 0,
+// // // // // //     }
+
+// // // // // //     const attendanceData = {
+// // // // // //       present: studentAttendance?.records?.filter((r: any) => r.status === "present") || [],
+// // // // // //       absent: studentAttendance?.records?.filter((r: any) => r.status === "absent") || [],
+// // // // // //       late: studentAttendance?.records?.filter((r: any) => r.status === "late") || [],
+// // // // // //       leave: studentAttendance?.records?.filter((r: any) => r.status === "leave") || [],
+// // // // // //     }
+
+// // // // // //     return (
+// // // // // //       <div className="space-y-6">
+// // // // // //         {user.institutionName && (
+// // // // // //           <div className="inline-flex items-center gap-2 text-xs font-medium text-teal-700 bg-teal-50 border border-teal-200 px-2 py-1 rounded">
+// // // // // //             {user.institutionName}
+// // // // // //           </div>
+// // // // // //         )}
+// // // // // //         <header className="space-y-1">
+// // // // // //           <h1 className="text-balance text-3xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
+// // // // // //             Welcome back, {user.name}!
+// // // // // //           </h1>
+// // // // // //           <p className="text-sm text-gray-600">Student Dashboard - View your attendance and quick actions.</p>
+// // // // // //         </header>
+
+// // // // // //         <LiveTimeDisplay />
+
+// // // // // //         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+// // // // // //           <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // // // //             <CardHeader>
+// // // // // //               <CardTitle className="text-blue-700 flex items-center gap-2">
+// // // // // //                 <div className="p-1 bg-blue-200 rounded-lg">
+// // // // // //                   <UserCheck className="h-4 w-4" />
+// // // // // //                 </div>
+// // // // // //                 My Attendance Rate
+// // // // // //               </CardTitle>
+// // // // // //             </CardHeader>
+// // // // // //             <CardContent>
+// // // // // //               <div className="text-4xl font-bold text-blue-700 mb-2">{stats.attendancePercentage}%</div>
+// // // // // //               <p className="text-sm text-blue-600">This month</p>
+// // // // // //             </CardContent>
+// // // // // //           </Card>
+
+// // // // // //           <Card className="bg-gradient-to-br from-green-50 to-emerald-100 border-green-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // // // //             <CardHeader>
+// // // // // //               <CardTitle className="text-green-700 flex items-center gap-2">
+// // // // // //                 <div className="p-1 bg-green-200 rounded-lg">
+// // // // // //                   <Calendar className="h-4 w-4" />
+// // // // // //                 </div>
+// // // // // //                 Present Days
+// // // // // //               </CardTitle>
+// // // // // //             </CardHeader>
+// // // // // //             <CardContent>
+// // // // // //               <div className="text-4xl font-bold text-green-700 mb-2">{stats.presentDays}</div>
+// // // // // //               <p className="text-sm text-green-600">Out of {stats.totalDays} days</p>
+// // // // // //             </CardContent>
+// // // // // //           </Card>
+
+// // // // // //           <Card className="bg-gradient-to-br from-orange-50 to-red-100 border-orange-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // // // //             <CardHeader>
+// // // // // //               <CardTitle className="text-orange-700 flex items-center gap-2">
+// // // // // //                 <div className="p-1 bg-orange-200 rounded-lg">
+// // // // // //                   <ClipboardList className="h-4 w-4" />
+// // // // // //                 </div>
+// // // // // //                 Leave Requests
+// // // // // //               </CardTitle>
+// // // // // //             </CardHeader>
+// // // // // //             <CardContent>
+// // // // // //               <div className="text-4xl font-bold text-orange-700 mb-2">{leaveStats.myRequests}</div>
+// // // // // //               <p className="text-sm text-orange-600">Total requests</p>
+// // // // // //             </CardContent>
+// // // // // //           </Card>
+// // // // // //         </div>
+
+// // // // // //         <AttendanceCalendar attendanceData={attendanceData} />
+
+// // // // // //         <Card className="shadow-lg">
+// // // // // //           <CardHeader>
+// // // // // //             <CardTitle className="text-gray-800">Recent Attendance</CardTitle>
+// // // // // //           </CardHeader>
+// // // // // //           <CardContent>
+// // // // // //             {studentAttendance?.records?.slice(0, 5).map((record: any) => (
+// // // // // //               <div
+// // // // // //                 key={record.id}
+// // // // // //                 className="flex justify-between items-center py-3 border-b last:border-b-0 hover:bg-gray-50 rounded-lg px-2 transition-colors duration-200"
+// // // // // //               >
+// // // // // //                 <span className="text-sm text-gray-700 font-medium">
+// // // // // //                   {new Date(record.date).toLocaleDateString("en-US", {
+// // // // // //                     weekday: "short",
+// // // // // //                     month: "short",
+// // // // // //                     day: "numeric",
+// // // // // //                   })}
+// // // // // //                 </span>
+// // // // // //                 <span
+// // // // // //                   className={`px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
+// // // // // //                     record.status === "present"
+// // // // // //                       ? "bg-green-100 text-green-800 border border-green-200"
+// // // // // //                       : record.status === "absent"
+// // // // // //                         ? "bg-red-100 text-red-800 border border-red-200"
+// // // // // //                         : record.status === "late"
+// // // // // //                           ? "bg-amber-100 text-amber-800 border border-amber-200"
+// // // // // //                           : "bg-orange-100 text-orange-800 border border-orange-200"
+// // // // // //                   }`}
+// // // // // //                 >
+// // // // // //                   {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+// // // // // //                 </span>
+// // // // // //               </div>
+// // // // // //             )) || <p className="text-sm text-gray-500 text-center py-8">No attendance records found</p>}
+// // // // // //           </CardContent>
+// // // // // //         </Card>
+// // // // // //       </div>
+// // // // // //     )
+// // // // // //   }
+
+// // // // // //   if (!summary) {
+// // // // // //     return (
+// // // // // //       <div className="flex items-center justify-center min-h-[400px]">
+// // // // // //         <div className="text-center">
+// // // // // //           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
+// // // // // //           <p className="text-gray-600">Loading dashboard...</p>
+// // // // // //         </div>
+// // // // // //       </div>
+// // // // // //     )
+// // // // // //   }
+
+// // // // // //   return (
+// // // // // //     <div className="space-y-6">
+// // // // // //       {user.institutionName && (
+// // // // // //         <div className="inline-flex items-center gap-2 text-xs font-medium text-teal-700 bg-teal-50 border border-teal-200 px-2 py-1 rounded">
+// // // // // //           {user.institutionName}
+// // // // // //         </div>
+// // // // // //       )}
+// // // // // //       <header className="space-y-1">
+// // // // // //         <h1 className="text-balance text-3xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
+// // // // // //           Welcome back, {user.name}!
+// // // // // //         </h1>
+// // // // // //         <p className="text-sm text-gray-600">
+// // // // // //           {user.role} Dashboard - Real-time overview by department, role, shift, and trends.
+// // // // // //         </p>
+// // // // // //       </header>
+
+// // // // // //       <LiveTimeDisplay />
+
+// // // // // //       {hasMinimumRole("Manager") && (
+// // // // // //         <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+// // // // // //           <Link href="/staff">
+// // // // // //             <Button
+// // // // // //               variant="outline"
+// // // // // //               className="h-24 w-full flex-col space-y-2 hover:bg-teal-50 hover:border-teal-300 bg-gradient-to-br from-white to-teal-50 shadow-md hover:shadow-lg transition-all duration-200 border-teal-200"
+// // // // // //             >
+// // // // // //               <div className="p-2 bg-teal-100 rounded-lg">
+// // // // // //                 <Users className="h-6 w-6 text-teal-600" />
+// // // // // //               </div>
+// // // // // //               <span className="text-sm font-semibold text-teal-700">Manage Staff</span>
+// // // // // //             </Button>
+// // // // // //           </Link>
+
+// // // // // //           {hasMinimumRole("Manager") && (
+// // // // // //             <Link href="/students">
+// // // // // //               <Button
+// // // // // //                 variant="outline"
+// // // // // //                 className="h-24 w-full flex-col space-y-2 hover:bg-blue-50 hover:border-blue-300 bg-gradient-to-br from-white to-blue-50 shadow-md hover:shadow-lg transition-all duration-200 border-blue-200"
+// // // // // //               >
+// // // // // //                 <div className="p-2 bg-blue-100 rounded-lg">
+// // // // // //                   <UserCheck className="h-6 w-6 text-blue-600" />
+// // // // // //                 </div>
+// // // // // //                 <span className="text-sm font-semibold text-blue-700">Manage Students</span>
+// // // // // //               </Button>
+// // // // // //             </Link>
+// // // // // //           )}
+
+// // // // // //           <Link href="/attendance">
+// // // // // //             <Button
+// // // // // //               variant="outline"
+// // // // // //               className="h-24 w-full flex-col space-y-2 hover:bg-green-50 hover:border-green-300 bg-gradient-to-br from-white to-green-50 shadow-md hover:shadow-lg transition-all duration-200 border-green-200"
+// // // // // //             >
+// // // // // //               <div className="p-2 bg-green-100 rounded-lg">
+// // // // // //                 <Calendar className="h-6 w-6 text-green-600" />
+// // // // // //               </div>
+// // // // // //               <span className="text-sm font-semibold text-green-700">Attendance</span>
+// // // // // //             </Button>
+// // // // // //           </Link>
+
+// // // // // //           <Link href="/leave-approval">
+// // // // // //             <Button
+// // // // // //               variant="outline"
+// // // // // //               className="h-24 w-full flex-col space-y-2 hover:bg-orange-50 hover:border-orange-300 bg-gradient-to-br from-white to-orange-50 shadow-md hover:shadow-lg transition-all duration-200 border-orange-200 relative"
+// // // // // //             >
+// // // // // //               <div className="p-2 bg-orange-100 rounded-lg">
+// // // // // //                 <CheckCircle className="h-6 w-6 text-orange-600" />
+// // // // // //               </div>
+// // // // // //               <span className="text-sm font-semibold text-orange-700">Leave Approval</span>
+// // // // // //               {leaveStats.pending > 0 && (
+// // // // // //                 <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
+// // // // // //                   {leaveStats.pending}
+// // // // // //                 </div>
+// // // // // //               )}
+// // // // // //             </Button>
+// // // // // //           </Link>
+
+// // // // // //           {user.role === "Admin" && (
+// // // // // //             <Link href="/reports">
+// // // // // //               <Button
+// // // // // //                 variant="outline"
+// // // // // //                 className="h-24 w-full flex-col space-y-2 hover:bg-purple-50 hover:border-purple-300 bg-gradient-to-br from-white to-purple-50 shadow-md hover:shadow-lg transition-all duration-200 border-purple-200"
+// // // // // //               >
+// // // // // //                 <div className="p-2 bg-purple-100 rounded-lg">
+// // // // // //                   <FileText className="h-6 w-6 text-purple-600" />
+// // // // // //                 </div>
+// // // // // //                 <span className="text-sm font-semibold text-purple-700">Reports</span>
+// // // // // //               </Button>
+// // // // // //             </Link>
+// // // // // //           )}
+// // // // // //         </div>
+// // // // // //       )}
+
+// // // // // //       {!hasMinimumRole("Manager") && !isStudent && (
+// // // // // //         <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+// // // // // //           <Link href="/faceid">
+// // // // // //             <Button
+// // // // // //               variant="outline"
+// // // // // //               className="h-24 w-full flex-col space-y-2 hover:bg-green-50 hover:border-green-300 bg-gradient-to-br from-white to-green-50 shadow-md hover:shadow-lg transition-all duration-200 border-green-200"
+// // // // // //             >
+// // // // // //               <div className="p-2 bg-green-100 rounded-lg">
+// // // // // //                 <UserCheck className="h-6 w-6 text-green-600" />
+// // // // // //               </div>
+// // // // // //               <span className="text-sm font-semibold text-green-700">Mark Attendance</span>
+// // // // // //             </Button>
+// // // // // //           </Link>
+
+// // // // // //           <Link href="/student-attendance">
+// // // // // //             <Button
+// // // // // //               variant="outline"
+// // // // // //               className="h-24 w-full flex-col space-y-2 hover:bg-blue-50 hover:border-blue-300 bg-gradient-to-br from-white to-blue-50 shadow-md hover:shadow-lg transition-all duration-200 border-blue-200"
+// // // // // //             >
+// // // // // //               <div className="p-2 bg-blue-100 rounded-lg">
+// // // // // //                 <Calendar className="h-4 w-4 text-blue-600" />
+// // // // // //               </div>
+// // // // // //               <span className="text-sm font-semibold text-blue-700">My Attendance</span>
+// // // // // //             </Button>
+// // // // // //           </Link>
+
+// // // // // //           <Link href="/leave-requests">
+// // // // // //             <Button
+// // // // // //               variant="outline"
+// // // // // //               className="h-24 w-full flex-col space-y-2 hover:bg-orange-50 hover:border-orange-300 bg-gradient-to-br from-white to-orange-50 shadow-md hover:shadow-lg transition-all duration-200 border-orange-200"
+// // // // // //             >
+// // // // // //               <div className="p-2 bg-orange-100 rounded-lg">
+// // // // // //                 <ClipboardList className="h-4 w-4 text-orange-600" />
+// // // // // //               </div>
+// // // // // //               <span className="text-sm font-semibold text-orange-700">Request Leave</span>
+// // // // // //               {leaveStats.myRequests > 0 && (
+// // // // // //                 <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
+// // // // // //                   {leaveStats.myRequests}
+// // // // // //                 </span>
+// // // // // //               )}
+// // // // // //             </Button>
+// // // // // //           </Link>
+// // // // // //         </div>
+// // // // // //       )}
+
+// // // // // //       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+// // // // // //         <Card className="bg-gradient-to-br from-teal-50 to-cyan-100 border-teal-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // // // //           <CardHeader>
+// // // // // //             <CardTitle className="text-teal-700 flex items-center gap-2">
+// // // // // //               <div className="p-1 bg-teal-200 rounded-lg">
+// // // // // //                 <UserCheck className="h-4 w-4" />
+// // // // // //               </div>
+// // // // // //               Today Present
+// // // // // //             </CardTitle>
+// // // // // //           </CardHeader>
+// // // // // //           <CardContent>
+// // // // // //             <div className="text-4xl font-bold text-teal-700">{summary.todayPresent}</div>
+// // // // // //           </CardContent>
+// // // // // //         </Card>
+// // // // // //         <Card className="bg-gradient-to-br from-amber-50 to-orange-100 border-amber-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // // // //           <CardHeader>
+// // // // // //             <CardTitle className="text-amber-700 flex items-center gap-2">
+// // // // // //               <div className="p-1 bg-amber-200 rounded-lg">
+// // // // // //                 <Users className="h-4 w-4" />
+// // // // // //               </div>
+// // // // // //               Today Absent
+// // // // // //             </CardTitle>
+// // // // // //           </CardHeader>
+// // // // // //           <CardContent>
+// // // // // //             <div className="text-4xl font-bold text-amber-700">{summary.todayAbsent}</div>
+// // // // // //           </CardContent>
+// // // // // //         </Card>
+// // // // // //         <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // // // //           <CardHeader>
+// // // // // //             <CardTitle className="text-blue-700 flex items-center gap-2">
+// // // // // //               <div className="p-1 bg-blue-200 rounded-lg">
+// // // // // //                 <Calendar className="h-4 w-4" />
+// // // // // //               </div>
+// // // // // //               On Leave Today
+// // // // // //             </CardTitle>
+// // // // // //           </CardHeader>
+// // // // // //           <CardContent>
+// // // // // //             <div className="text-4xl font-bold text-blue-700">{summary.todayLeave || 0}</div>
+// // // // // //           </CardContent>
+// // // // // //         </Card>
+// // // // // //       </div>
+
+// // // // // //       {hasMinimumRole("Manager") && (
+// // // // // //         <>
+// // // // // //           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+// // // // // //             <BarChartCard title="By Department (Today)" data={summary.byDepartment} />
+// // // // // //             <BarChartCard title="By Role (Today)" data={summary.byRole} />
+// // // // // //           </div>
+
+// // // // // //           <LineChartCard title="Last 7 Days" data={summary.last7Days} />
+
+// // // // // //           <BarChartCard title="By Shift (Today)" data={summary.byShift} />
+// // // // // //         </>
+// // // // // //       )}
+// // // // // //     </div>
+// // // // // //   )
+// // // // // // }
+
+
+
+
+// // // // // "use client"
+
+// // // // // import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+// // // // // import BarChartCard from "@/components/dashboard/bar-chart-card"
+// // // // // import LineChartCard from "@/components/dashboard/line-chart-card"
+// // // // // import { useEffect, useState } from "react"
+// // // // // import { getStoredUser, hasMinimumRole, type User } from "@/lib/auth"
+// // // // // import { Button } from "@/components/ui/button"
+// // // // // import { Users, UserCheck, Calendar, FileText, ClipboardList, CheckCircle } from "lucide-react"
+// // // // // import Link from "next/link"
+// // // // // import useSWR from "swr"
+// // // // // import LiveTimeDisplay from "@/components/live-time-display"
+// // // // // import { AttendanceCalendar } from "@/components/attendance-calendar"
+
+// // // // // type Summary = {
+// // // // //   todayPresent: number
+// // // // //   todayAbsent: number
+// // // // //   todayLeave: number // Added todayLeave field
+// // // // //   byDepartment: { name: string; present: number; absent: number }[]
+// // // // //   byRole: { name: string; present: number; absent: number }[]
+// // // // //   byShift: { name: string; present: number; absent: number }[]
+// // // // //   last7Days: { date: string; present: number; absent: number }[]
+// // // // //   totalPeople: number
+// // // // // }
+
+// // // // // const fetcher = (url: string) => fetch(url).then((r) => r.json())
+
+// // // // // export default function DashboardPage() {
+// // // // //   const [summary, setSummary] = useState<Summary | null>(null)
+// // // // //   const [user, setUser] = useState<User | null>(null)
+// // // // //   const [loading, setLoading] = useState(true)
+// // // // //   const [leaveStats, setLeaveStats] = useState({ pending: 0, myRequests: 0 })
+
+// // // // //   const roleNormalized = user?.role ? String(user.role).trim().toLowerCase() : ""
+// // // // //   const isStudent = roleNormalized === "student"
+// // // // //   const studentId = (user as any)?.id || (user as any)?._id?.toString?.()
+
+// // // // //   const { data: studentAttendance } = useSWR(
+// // // // //     isStudent && studentId ? `/api/students/${studentId}/attendance` : null,
+// // // // //     fetcher,
+// // // // //   )
+
+// // // // //   useEffect(() => {
+// // // // //     const storedUser = getStoredUser()
+// // // // //     setUser(storedUser)
+
+// // // // //     const fetchSummary = async () => {
+// // // // //       try {
+// // // // //         const inst = storedUser?.role !== "SuperAdmin" ? storedUser?.institutionName : undefined
+// // // // //         const url = inst ? `/api/reports/summary?institutionName=${encodeURIComponent(inst)}` : "/api/reports/summary"
+// // // // //         const res = await fetch(url, { cache: "no-store" })
+// // // // //         if (res.ok) {
+// // // // //           const data = await res.json()
+// // // // //           setSummary(data)
+// // // // //         }
+// // // // //       } catch (error) {
+// // // // //         console.error("Failed to fetch summary:", error)
+// // // // //       } finally {
+// // // // //         setLoading(false)
+// // // // //       }
+// // // // //     }
+
+// // // // //     const fetchLeaveStats = async () => {
+// // // // //       if (!storedUser) return
+
+// // // // //       try {
+// // // // //         const storedId = (storedUser as any)?.id || (storedUser as any)?._id?.toString?.()
+
+// // // // //         if (!storedId) {
+// // // // //           setLeaveStats({ pending: 0, myRequests: 0 })
+// // // // //           return
+// // // // //         }
+
+// // // // //         // Fetch user's own leave requests
+// // // // //         const myRequestsRes = await fetch(`/api/leave-requests?personId=${storedId}`)
+// // // // //         if (myRequestsRes.ok) {
+// // // // //           const myData = await myRequestsRes.json()
+// // // // //           const myRequestsCount = myData.leaveRequests?.length || 0
+
+// // // // //           let pendingCount = 0
+// // // // //           // If user can approve requests, fetch pending count
+// // // // //           if (hasMinimumRole("Manager")) {
+// // // // //             const inst = storedUser?.role !== "SuperAdmin" ? storedUser?.institutionName : undefined
+// // // // //             const pUrl = `/api/leave-requests?status=pending${inst ? `&institutionName=${encodeURIComponent(inst)}` : ""}`
+// // // // //             const pendingRes = await fetch(pUrl)
+// // // // //             if (pendingRes.ok) {
+// // // // //               const pendingData = await pendingRes.json()
+// // // // //               pendingCount = pendingData.leaveRequests?.length || 0
+// // // // //             }
+// // // // //           }
+
+// // // // //           setLeaveStats({ pending: pendingCount, myRequests: myRequestsCount })
+// // // // //         }
+// // // // //       } catch (error) {
+// // // // //         console.error("Failed to fetch leave stats:", error)
+// // // // //       }
+// // // // //     }
+
+// // // // //     fetchSummary()
+// // // // //     fetchLeaveStats()
+// // // // //   }, [])
+
+// // // // //   if (loading || !user) {
+// // // // //     return (
+// // // // //       <div className="flex items-center justify-center min-h-[400px]">
+// // // // //         <div className="text-center">
+// // // // //           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
+// // // // //           <p className="text-gray-600">Loading dashboard...</p>
+// // // // //         </div>
+// // // // //       </div>
+// // // // //     )
+// // // // //   }
+
+// // // // //   if (isStudent) {
+// // // // //     const stats = studentAttendance?.stats || {
+// // // // //       attendancePercentage: 0,
+// // // // //       presentDays: 0,
+// // // // //       totalDays: 0,
+// // // // //     }
+
+// // // // //     const attendanceData = {
+// // // // //       present: studentAttendance?.records?.filter((r: any) => r.status === "present") || [],
+// // // // //       absent: studentAttendance?.records?.filter((r: any) => r.status === "absent") || [],
+// // // // //       late: studentAttendance?.records?.filter((r: any) => r.status === "late") || [],
+// // // // //       leave: studentAttendance?.records?.filter((r: any) => r.status === "leave") || [],
+// // // // //     }
+
+// // // // //     return (
+// // // // //       <div className="space-y-6">
+// // // // //         {user.institutionName && (
+// // // // //           <div className="inline-flex items-center gap-2 text-xs font-medium text-teal-700 bg-teal-50 border border-teal-200 px-2 py-1 rounded">
+// // // // //             {user.institutionName}
+// // // // //           </div>
+// // // // //         )}
+// // // // //         <header className="space-y-1">
+// // // // //           <h1 className="text-balance text-3xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
+// // // // //             Welcome back, {user.name}!
+// // // // //           </h1>
+// // // // //           <p className="text-sm text-gray-600">Student Dashboard - View your attendance and quick actions.</p>
+// // // // //         </header>
+
+// // // // //         <LiveTimeDisplay />
+
+// // // // //         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+// // // // //           <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // // //             <CardHeader>
+// // // // //               <CardTitle className="text-blue-700 flex items-center gap-2">
+// // // // //                 <div className="p-1 bg-blue-200 rounded-lg">
+// // // // //                   <UserCheck className="h-4 w-4" />
+// // // // //                 </div>
+// // // // //                 My Attendance Rate
+// // // // //               </CardTitle>
+// // // // //             </CardHeader>
+// // // // //             <CardContent>
+// // // // //               <div className="text-4xl font-bold text-blue-700 mb-2">{stats.attendancePercentage}%</div>
+// // // // //               <p className="text-sm text-blue-600">This month</p>
+// // // // //             </CardContent>
+// // // // //           </Card>
+
+// // // // //           <Card className="bg-gradient-to-br from-green-50 to-emerald-100 border-green-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // // //             <CardHeader>
+// // // // //               <CardTitle className="text-green-700 flex items-center gap-2">
+// // // // //                 <div className="p-1 bg-green-200 rounded-lg">
+// // // // //                   <Calendar className="h-4 w-4" />
+// // // // //                 </div>
+// // // // //                 Present Days
+// // // // //               </CardTitle>
+// // // // //             </CardHeader>
+// // // // //             <CardContent>
+// // // // //               <div className="text-4xl font-bold text-green-700 mb-2">{stats.presentDays}</div>
+// // // // //               <p className="text-sm text-green-600">Out of {stats.totalDays} days</p>
+// // // // //             </CardContent>
+// // // // //           </Card>
+
+// // // // //           <Card className="bg-gradient-to-br from-orange-50 to-red-100 border-orange-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // // //             <CardHeader>
+// // // // //               <CardTitle className="text-orange-700 flex items-center gap-2">
+// // // // //                 <div className="p-1 bg-orange-200 rounded-lg">
+// // // // //                   <ClipboardList className="h-4 w-4" />
+// // // // //                 </div>
+// // // // //                 Leave Requests
+// // // // //               </CardTitle>
+// // // // //             </CardHeader>
+// // // // //             <CardContent>
+// // // // //               <div className="text-4xl font-bold text-orange-700 mb-2">{leaveStats.myRequests}</div>
+// // // // //               <p className="text-sm text-orange-600">Total requests</p>
+// // // // //             </CardContent>
+// // // // //           </Card>
+// // // // //         </div>
+
+// // // // //         <AttendanceCalendar attendanceData={attendanceData} />
+
+// // // // //         <Card className="shadow-lg">
+// // // // //           <CardHeader>
+// // // // //             <CardTitle className="text-gray-800">Recent Attendance</CardTitle>
+// // // // //           </CardHeader>
+// // // // //           <CardContent>
+// // // // //             {studentAttendance?.records?.slice(0, 5).map((record: any) => (
+// // // // //               <div
+// // // // //                 key={record.id}
+// // // // //                 className="flex justify-between items-center py-3 border-b last:border-b-0 hover:bg-gray-50 rounded-lg px-2 transition-colors duration-200"
+// // // // //               >
+// // // // //                 <span className="text-sm text-gray-700 font-medium">
+// // // // //                   {new Date(record.date).toLocaleDateString("en-US", {
+// // // // //                     weekday: "short",
+// // // // //                     month: "short",
+// // // // //                     day: "numeric",
+// // // // //                   })}
+// // // // //                 </span>
+// // // // //                 <span
+// // // // //                   className={`px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
+// // // // //                     record.status === "present"
+// // // // //                       ? "bg-green-100 text-green-800 border border-green-200"
+// // // // //                       : record.status === "absent"
+// // // // //                         ? "bg-red-100 text-red-800 border border-red-200"
+// // // // //                         : record.status === "late"
+// // // // //                           ? "bg-amber-100 text-amber-800 border border-amber-200"
+// // // // //                           : "bg-orange-100 text-orange-800 border border-orange-200"
+// // // // //                   }`}
+// // // // //                 >
+// // // // //                   {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+// // // // //                 </span>
+// // // // //               </div>
+// // // // //             )) || <p className="text-sm text-gray-500 text-center py-8">No attendance records found</p>}
+// // // // //           </CardContent>
+// // // // //         </Card>
+// // // // //       </div>
+// // // // //     )
+// // // // //   }
+
+// // // // //   if (!summary) {
+// // // // //     return (
+// // // // //       <div className="flex items-center justify-center min-h-[400px]">
+// // // // //         <div className="text-center">
+// // // // //           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
+// // // // //           <p className="text-gray-600">Loading dashboard...</p>
+// // // // //         </div>
+// // // // //       </div>
+// // // // //     )
+// // // // //   }
+
+// // // // //   return (
+// // // // //     <div className="space-y-6">
+// // // // //       {user.institutionName && (
+// // // // //         <div className="inline-flex items-center gap-2 text-xs font-medium text-teal-700 bg-teal-50 border border-teal-200 px-2 py-1 rounded">
+// // // // //           {user.institutionName}
+// // // // //         </div>
+// // // // //       )}
+// // // // //       <header className="space-y-1">
+// // // // //         <h1 className="text-balance text-3xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
+// // // // //           Welcome back, {user.name}!
+// // // // //         </h1>
+// // // // //         <p className="text-sm text-gray-600">
+// // // // //           {user.role} Dashboard - Real-time overview by department, role, shift, and trends.
+// // // // //         </p>
+// // // // //       </header>
+
+// // // // //       <LiveTimeDisplay />
+
+// // // // //       {hasMinimumRole("Manager") && (
+// // // // //         <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+// // // // //           <Link href="/staff">
+// // // // //             <Button
+// // // // //               variant="outline"
+// // // // //               className="h-24 w-full flex-col space-y-2 hover:bg-teal-50 hover:border-teal-300 bg-gradient-to-br from-white to-teal-50 shadow-md hover:shadow-lg transition-all duration-200 border-teal-200"
+// // // // //             >
+// // // // //               <div className="p-2 bg-teal-100 rounded-lg">
+// // // // //                 <Users className="h-6 w-6 text-teal-600" />
+// // // // //               </div>
+// // // // //               <span className="text-sm font-semibold text-teal-700">Manage Staff</span>
+// // // // //             </Button>
+// // // // //           </Link>
+
+// // // // //           {hasMinimumRole("Manager") && (
+// // // // //             <Link href="/students">
+// // // // //               <Button
+// // // // //                 variant="outline"
+// // // // //                 className="h-24 w-full flex-col space-y-2 hover:bg-blue-50 hover:border-blue-300 bg-gradient-to-br from-white to-blue-50 shadow-md hover:shadow-lg transition-all duration-200 border-blue-200"
+// // // // //               >
+// // // // //                 <div className="p-2 bg-blue-100 rounded-lg">
+// // // // //                   <UserCheck className="h-6 w-6 text-blue-600" />
+// // // // //                 </div>
+// // // // //                 <span className="text-sm font-semibold text-blue-700">Manage Students</span>
+// // // // //               </Button>
+// // // // //             </Link>
+// // // // //           )}
+
+// // // // //           <Link href="/attendance">
+// // // // //             <Button
+// // // // //               variant="outline"
+// // // // //               className="h-24 w-full flex-col space-y-2 hover:bg-green-50 hover:border-green-300 bg-gradient-to-br from-white to-green-50 shadow-md hover:shadow-lg transition-all duration-200 border-green-200"
+// // // // //             >
+// // // // //               <div className="p-2 bg-green-100 rounded-lg">
+// // // // //                 <Calendar className="h-6 w-6 text-green-600" />
+// // // // //               </div>
+// // // // //               <span className="text-sm font-semibold text-green-700">Attendance</span>
+// // // // //             </Button>
+// // // // //           </Link>
+
+// // // // //           <Link href="/leave-approval">
+// // // // //             <Button
+// // // // //               variant="outline"
+// // // // //               className="h-24 w-full flex-col space-y-2 hover:bg-orange-50 hover:border-orange-300 bg-gradient-to-br from-white to-orange-50 shadow-md hover:shadow-lg transition-all duration-200 border-orange-200 relative"
+// // // // //             >
+// // // // //               <div className="p-2 bg-orange-100 rounded-lg">
+// // // // //                 <CheckCircle className="h-6 w-6 text-orange-600" />
+// // // // //               </div>
+// // // // //               <span className="text-sm font-semibold text-orange-700">Leave Approval</span>
+// // // // //               {leaveStats.pending > 0 && (
+// // // // //                 <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
+// // // // //                   {leaveStats.pending}
+// // // // //                 </div>
+// // // // //               )}
+// // // // //             </Button>
+// // // // //           </Link>
+
+// // // // //           {user.role === "Admin" && (
+// // // // //             <Link href="/reports">
+// // // // //               <Button
+// // // // //                 variant="outline"
+// // // // //                 className="h-24 w-full flex-col space-y-2 hover:bg-purple-50 hover:border-purple-300 bg-gradient-to-br from-white to-purple-50 shadow-md hover:shadow-lg transition-all duration-200 border-purple-200"
+// // // // //               >
+// // // // //                 <div className="p-2 bg-purple-100 rounded-lg">
+// // // // //                   <FileText className="h-6 w-6 text-purple-600" />
+// // // // //                 </div>
+// // // // //                 <span className="text-sm font-semibold text-purple-700">Reports</span>
+// // // // //               </Button>
+// // // // //             </Link>
+// // // // //           )}
+// // // // //         </div>
+// // // // //       )}
+
+// // // // //       {!hasMinimumRole("Manager") && !isStudent && (
+// // // // //         <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+// // // // //           <Link href="/faceid">
+// // // // //             <Button
+// // // // //               variant="outline"
+// // // // //               className="h-24 w-full flex-col space-y-2 hover:bg-green-50 hover:border-green-300 bg-gradient-to-br from-white to-green-50 shadow-md hover:shadow-lg transition-all duration-200 border-green-200"
+// // // // //             >
+// // // // //               <div className="p-2 bg-green-100 rounded-lg">
+// // // // //                 <UserCheck className="h-4 w-4 text-green-600" />
+// // // // //               </div>
+// // // // //               <span className="text-sm font-semibold text-green-700">Mark Attendance</span>
+// // // // //             </Button>
+// // // // //           </Link>
+
+// // // // //           <Link href="/student-attendance">
+// // // // //             <Button
+// // // // //               variant="outline"
+// // // // //               className="h-24 w-full flex-col space-y-2 hover:bg-blue-50 hover:border-blue-300 bg-gradient-to-br from-white to-blue-50 shadow-md hover:shadow-lg transition-all duration-200 border-blue-200"
+// // // // //             >
+// // // // //               <div className="p-2 bg-blue-100 rounded-lg">
+// // // // //                 <Calendar className="h-4 w-4 text-blue-600" />
+// // // // //               </div>
+// // // // //               <span className="text-sm font-semibold text-blue-700">My Attendance</span>
+// // // // //             </Button>
+// // // // //           </Link>
+
+// // // // //           <Link href="/leave-requests">
+// // // // //             <Button
+// // // // //               variant="outline"
+// // // // //               className="h-24 w-full flex-col space-y-2 hover:bg-orange-50 hover:border-orange-300 bg-gradient-to-br from-white to-orange-50 shadow-md hover:shadow-lg transition-all duration-200 border-orange-200"
+// // // // //             >
+// // // // //               <div className="p-2 bg-orange-100 rounded-lg">
+// // // // //                 <ClipboardList className="h-4 w-4 text-orange-600" />
+// // // // //               </div>
+// // // // //               <span className="text-sm font-semibold text-orange-700">Request Leave</span>
+// // // // //               {leaveStats.myRequests > 0 && (
+// // // // //                 <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
+// // // // //                   {leaveStats.myRequests}
+// // // // //                 </span>
+// // // // //               )}
+// // // // //             </Button>
+// // // // //           </Link>
+// // // // //         </div>
+// // // // //       )}
+
+// // // // //       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+// // // // //         <Card className="bg-gradient-to-br from-teal-50 to-cyan-100 border-teal-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // // //           <CardHeader>
+// // // // //             <CardTitle className="text-teal-700 flex items-center gap-2">
+// // // // //               <div className="p-1 bg-teal-200 rounded-lg">
+// // // // //                 <UserCheck className="h-4 w-4" />
+// // // // //               </div>
+// // // // //               Today Present
+// // // // //             </CardTitle>
+// // // // //           </CardHeader>
+// // // // //           <CardContent>
+// // // // //             <div className="text-4xl font-bold text-teal-700">{summary.todayPresent}</div>
+// // // // //           </CardContent>
+// // // // //         </Card>
+// // // // //         <Card className="bg-gradient-to-br from-amber-50 to-orange-100 border-amber-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // // //           <CardHeader>
+// // // // //             <CardTitle className="text-amber-700 flex items-center gap-2">
+// // // // //               <div className="p-1 bg-amber-200 rounded-lg">
+// // // // //                 <Users className="h-4 w-4" />
+// // // // //               </div>
+// // // // //               Today Absent
+// // // // //             </CardTitle>
+// // // // //           </CardHeader>
+// // // // //           <CardContent>
+// // // // //             <div className="text-4xl font-bold text-amber-700">{summary.todayAbsent}</div>
+// // // // //           </CardContent>
+// // // // //         </Card>
+// // // // //         <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // // //           <CardHeader>
+// // // // //             <CardTitle className="text-blue-700 flex items-center gap-2">
+// // // // //               <div className="p-1 bg-blue-200 rounded-lg">
+// // // // //                 <Calendar className="h-4 w-4" />
+// // // // //               </div>
+// // // // //               On Leave Today
+// // // // //             </CardTitle>
+// // // // //           </CardHeader>
+// // // // //           <CardContent>
+// // // // //             <div className="text-4xl font-bold text-blue-700">{summary.todayLeave || 0}</div>
+// // // // //           </CardContent>
+// // // // //         </Card>
+// // // // //       </div>
+
+// // // // //       {hasMinimumRole("Manager") && (
+// // // // //         <>
+// // // // //           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+// // // // //             <BarChartCard title="By Department (Today)" data={summary.byDepartment} />
+// // // // //             <BarChartCard title="By Role (Today)" data={summary.byRole} />
+// // // // //           </div>
+
+// // // // //           <LineChartCard title="Last 7 Days" data={summary.last7Days} />
+
+// // // // //           <BarChartCard title="By Shift (Today)" data={summary.byShift} />
+// // // // //         </>
+// // // // //       )}
+// // // // //     </div>
+// // // // //   )
+// // // // // }
+
+
+
+// // // // "use client"
+
+// // // // import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+// // // // import BarChartCard from "@/components/dashboard/bar-chart-card"
+// // // // import LineChartCard from "@/components/dashboard/line-chart-card"
+// // // // import { useEffect, useState } from "react"
+// // // // import { getStoredUser, hasMinimumRole, type User } from "@/lib/auth"
+// // // // import { Button } from "@/components/ui/button"
+// // // // import { Users, UserCheck, Calendar, FileText, ClipboardList, CheckCircle } from "lucide-react"
+// // // // import Link from "next/link"
+// // // // import LiveTimeDisplay from "@/components/live-time-display"
+// // // // import { AttendanceCalendar } from "@/components/attendance-calendar"
+// // // // import { getStudentAttendance } from "@/lib/student-attendance" // Added import for studentAttendance
+
+// // // // type Summary = {
+// // // //   todayPresent: number
+// // // //   todayAbsent: number
+// // // //   todayLeave: number // Added todayLeave field
+// // // //   byDepartment: { name: string; present: number; absent: number }[]
+// // // //   byRole: { name: string; present: number; absent: number }[]
+// // // //   byShift: { name: string; present: number; absent: number }[]
+// // // //   last7Days: { date: string; present: number; absent: number }[]
+// // // //   totalPeople: number
+// // // // }
+
+// // // // const fetcher = (url: string) => fetch(url).then((r) => r.json())
+
+// // // // export default function DashboardPage() {
+// // // //   const [summary, setSummary] = useState<Summary | null>(null)
+// // // //   const [user, setUser] = useState<User | null>(null)
+// // // //   const [loading, setLoading] = useState(true)
+// // // //   const [leaveStats, setLeaveStats] = useState({ pending: 0, myRequests: 0 })
+// // // //   const [resolvedStudentId, setResolvedStudentId] = useState<string | null>(null)
+// // // //   const [studentAttendance, setStudentAttendance] = useState<any | null>(null) // Declared studentAttendance state
+
+// // // //   const roleNormalized = user?.role ? String(user.role).trim().toLowerCase() : ""
+// // // //   const isStudent = roleNormalized === "student"
+// // // //   const quickStudentId = (user as any)?.id || (user as any)?._id?.toString?.()
+// // // //   const computedStudentId = resolvedStudentId || quickStudentId
+
+// // // //   useEffect(() => {
+// // // //     const storedUser = getStoredUser()
+// // // //     setUser(storedUser)
+
+// // // //     const initialId = (storedUser as any)?.id || (storedUser as any)?._id?.toString?.() || null
+// // // //     if (initialId) {
+// // // //       setResolvedStudentId(initialId)
+// // // //     }
+
+// // // //     const tryResolveStudentId = async () => {
+// // // //       try {
+// // // //         const roleNorm = storedUser?.role ? String(storedUser.role).trim().toLowerCase() : ""
+// // // //         if (roleNorm !== "student") return
+// // // //         if (initialId) return
+
+// // // //         const inst = storedUser?.role !== "SuperAdmin" ? storedUser?.institutionName : undefined
+// // // //         const url = inst ? `/api/students?institutionName=${encodeURIComponent(inst)}` : "/api/students"
+// // // //         const res = await fetch(url, { cache: "no-store" })
+// // // //         if (!res.ok) return
+// // // //         const payload = await res.json()
+// // // //         const items: any[] = Array.isArray(payload?.items) ? payload.items : []
+
+// // // //         const found = items.find(
+// // // //           (s) =>
+// // // //             (storedUser?.email && s?.email === storedUser.email) || (storedUser as any)?.rollNumber === s?.rollNumber,
+// // // //         )
+// // // //         if (found?.id) {
+// // // //           setResolvedStudentId(found.id)
+// // // //         }
+// // // //       } catch (e) {
+// // // //         console.error("[v0] Failed to resolve studentId:", e)
+// // // //       }
+// // // //     }
+
+// // // //     tryResolveStudentId()
+
+// // // //     const fetchSummary = async () => {
+// // // //       try {
+// // // //         const inst = storedUser?.role !== "SuperAdmin" ? storedUser?.institutionName : undefined
+// // // //         const url = inst ? `/api/reports/summary?institutionName=${encodeURIComponent(inst)}` : "/api/reports/summary"
+// // // //         const res = await fetch(url, { cache: "no-store" })
+// // // //         if (res.ok) {
+// // // //           const data = await res.json()
+// // // //           setSummary(data)
+// // // //         }
+// // // //       } catch (error) {
+// // // //         console.error("Failed to fetch summary:", error)
+// // // //       } finally {
+// // // //         setLoading(false)
+// // // //       }
+// // // //     }
+
+// // // //     const fetchLeaveStats = async () => {
+// // // //       if (!storedUser) return
+
+// // // //       try {
+// // // //         const storedId = (storedUser as any)?.id || (storedUser as any)?._id?.toString?.()
+
+// // // //         if (!storedId) {
+// // // //           setLeaveStats({ pending: 0, myRequests: 0 })
+// // // //           return
+// // // //         }
+
+// // // //         const myRequestsRes = await fetch(`/api/leave-requests?personId=${storedId}`)
+// // // //         if (myRequestsRes.ok) {
+// // // //           const myData = await myRequestsRes.json()
+// // // //           const myRequestsCount = myData.leaveRequests?.length || 0
+
+// // // //           let pendingCount = 0
+// // // //           if (hasMinimumRole("Manager")) {
+// // // //             const inst = storedUser?.role !== "SuperAdmin" ? storedUser?.institutionName : undefined
+// // // //             const pUrl = `/api/leave-requests?status=pending${inst ? `&institutionName=${encodeURIComponent(inst)}` : ""}`
+// // // //             const pendingRes = await fetch(pUrl)
+// // // //             if (pendingRes.ok) {
+// // // //               const pendingData = await pendingRes.json()
+// // // //               pendingCount = pendingData.leaveRequests?.length || 0
+// // // //             }
+// // // //           }
+
+// // // //           setLeaveStats({ pending: pendingCount, myRequests: myRequestsCount })
+// // // //         }
+// // // //       } catch (error) {
+// // // //         console.error("Failed to fetch leave stats:", error)
+// // // //       }
+// // // //     }
+
+// // // //     const fetchStudentAttendance = async () => {
+// // // //       if (!computedStudentId) return
+
+// // // //       try {
+// // // //         const data = await getStudentAttendance(computedStudentId)
+// // // //         setStudentAttendance(data)
+// // // //       } catch (error) {
+// // // //         console.error("Failed to fetch student attendance:", error)
+// // // //       }
+// // // //     }
+
+// // // //     fetchSummary()
+// // // //     fetchLeaveStats()
+// // // //     fetchStudentAttendance()
+// // // //   }, [])
+
+// // // //   if (loading || !user) {
+// // // //     return (
+// // // //       <div className="flex items-center justify-center min-h-[400px]">
+// // // //         <div className="text-center">
+// // // //           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
+// // // //           <p className="text-gray-600">Loading dashboard...</p>
+// // // //         </div>
+// // // //       </div>
+// // // //     )
+// // // //   }
+
+// // // //   if (isStudent) {
+// // // //     const stats = studentAttendance?.stats || {
+// // // //       attendancePercentage: 0,
+// // // //       presentDays: 0,
+// // // //       totalDays: 0,
+// // // //     }
+
+// // // //     const attendanceData = {
+// // // //       present: studentAttendance?.records?.filter((r: any) => r.status === "present") || [],
+// // // //       absent: studentAttendance?.records?.filter((r: any) => r.status === "absent") || [],
+// // // //       late: studentAttendance?.records?.filter((r: any) => r.status === "late") || [],
+// // // //       leave: studentAttendance?.records?.filter((r: any) => r.status === "leave") || [],
+// // // //     }
+
+// // // //     return (
+// // // //       <div className="space-y-6">
+// // // //         {user.institutionName && (
+// // // //           <div className="inline-flex items-center gap-2 text-xs font-medium text-teal-700 bg-teal-50 border border-teal-200 px-2 py-1 rounded">
+// // // //             {user.institutionName}
+// // // //           </div>
+// // // //         )}
+// // // //         <header className="space-y-1">
+// // // //           <h1 className="text-balance text-3xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
+// // // //             Welcome back, {user.name}!
+// // // //           </h1>
+// // // //           <p className="text-sm text-gray-600">Student Dashboard - View your attendance and quick actions.</p>
+// // // //         </header>
+
+// // // //         <LiveTimeDisplay />
+
+// // // //         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+// // // //           <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // //             <CardHeader>
+// // // //               <CardTitle className="text-blue-700 flex items-center gap-2">
+// // // //                 <div className="p-1 bg-blue-200 rounded-lg">
+// // // //                   <UserCheck className="h-4 w-4" />
+// // // //                 </div>
+// // // //                 My Attendance Rate
+// // // //               </CardTitle>
+// // // //             </CardHeader>
+// // // //             <CardContent>
+// // // //               <div className="text-4xl font-bold text-blue-700 mb-2">{stats.attendancePercentage}%</div>
+// // // //               <p className="text-sm text-blue-600">This month</p>
+// // // //             </CardContent>
+// // // //           </Card>
+
+// // // //           <Card className="bg-gradient-to-br from-green-50 to-emerald-100 border-green-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // //             <CardHeader>
+// // // //               <CardTitle className="text-green-700 flex items-center gap-2">
+// // // //                 <div className="p-1 bg-green-200 rounded-lg">
+// // // //                   <Calendar className="h-4 w-4" />
+// // // //                 </div>
+// // // //                 Present Days
+// // // //               </CardTitle>
+// // // //             </CardHeader>
+// // // //             <CardContent>
+// // // //               <div className="text-4xl font-bold text-green-700 mb-2">{stats.presentDays}</div>
+// // // //               <p className="text-sm text-green-600">Out of {stats.totalDays} days</p>
+// // // //             </CardContent>
+// // // //           </Card>
+
+// // // //           <Card className="bg-gradient-to-br from-orange-50 to-red-100 border-orange-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // //             <CardHeader>
+// // // //               <CardTitle className="text-orange-700 flex items-center gap-2">
+// // // //                 <div className="p-1 bg-orange-200 rounded-lg">
+// // // //                   <ClipboardList className="h-4 w-4" />
+// // // //                 </div>
+// // // //                 Leave Requests
+// // // //               </CardTitle>
+// // // //             </CardHeader>
+// // // //             <CardContent>
+// // // //               <div className="text-4xl font-bold text-orange-700 mb-2">{leaveStats.myRequests}</div>
+// // // //               <p className="text-sm text-orange-600">Total requests</p>
+// // // //             </CardContent>
+// // // //           </Card>
+// // // //         </div>
+
+// // // //         <AttendanceCalendar attendanceData={attendanceData} />
+
+// // // //         <Card className="shadow-lg">
+// // // //           <CardHeader>
+// // // //             <CardTitle className="text-gray-800">Recent Attendance</CardTitle>
+// // // //           </CardHeader>
+// // // //           <CardContent>
+// // // //             {studentAttendance?.records?.slice(0, 5).map((record: any) => (
+// // // //               <div
+// // // //                 key={record.id}
+// // // //                 className="flex justify-between items-center py-3 border-b last:border-b-0 hover:bg-gray-50 rounded-lg px-2 transition-colors duration-200"
+// // // //               >
+// // // //                 <span className="text-sm text-gray-700 font-medium">
+// // // //                   {new Date(record.date).toLocaleDateString("en-US", {
+// // // //                     weekday: "short",
+// // // //                     month: "short",
+// // // //                     day: "numeric",
+// // // //                   })}
+// // // //                 </span>
+// // // //                 <span
+// // // //                   className={`px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
+// // // //                     record.status === "present"
+// // // //                       ? "bg-green-100 text-green-800 border border-green-200"
+// // // //                       : record.status === "absent"
+// // // //                         ? "bg-red-100 text-red-800 border border-red-200"
+// // // //                         : record.status === "late"
+// // // //                           ? "bg-amber-100 text-amber-800 border border-amber-200"
+// // // //                           : "bg-orange-100 text-orange-800 border border-orange-200"
+// // // //                   }`}
+// // // //                 >
+// // // //                   {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+// // // //                 </span>
+// // // //               </div>
+// // // //             )) || <p className="text-sm text-gray-500 text-center py-8">No attendance records found</p>}
+// // // //           </CardContent>
+// // // //         </Card>
+// // // //       </div>
+// // // //     )
+// // // //   }
+
+// // // //   if (!summary) {
+// // // //     return (
+// // // //       <div className="flex items-center justify-center min-h-[400px]">
+// // // //         <div className="text-center">
+// // // //           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
+// // // //           <p className="text-gray-600">Loading dashboard...</p>
+// // // //         </div>
+// // // //       </div>
+// // // //     )
+// // // //   }
+
+// // // //   return (
+// // // //     <div className="space-y-6">
+// // // //       {user.institutionName && (
+// // // //         <div className="inline-flex items-center gap-2 text-xs font-medium text-teal-700 bg-teal-50 border border-teal-200 px-2 py-1 rounded">
+// // // //           {user.institutionName}
+// // // //         </div>
+// // // //       )}
+// // // //       <header className="space-y-1">
+// // // //         <h1 className="text-balance text-3xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
+// // // //           Welcome back, {user.name}!
+// // // //         </h1>
+// // // //         <p className="text-sm text-gray-600">
+// // // //           {user.role} Dashboard - Real-time overview by department, role, shift, and trends.
+// // // //         </p>
+// // // //       </header>
+
+// // // //       <LiveTimeDisplay />
+
+// // // //       {hasMinimumRole("Manager") && (
+// // // //         <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+// // // //           <Link href="/staff">
+// // // //             <Button
+// // // //               variant="outline"
+// // // //               className="h-24 w-full flex-col space-y-2 hover:bg-teal-50 hover:border-teal-300 bg-gradient-to-br from-white to-teal-50 shadow-md hover:shadow-lg transition-all duration-200 border-teal-200"
+// // // //             >
+// // // //               <div className="p-2 bg-teal-100 rounded-lg">
+// // // //                 <Users className="h-6 w-6 text-teal-600" />
+// // // //               </div>
+// // // //               <span className="text-sm font-semibold text-teal-700">Manage Staff</span>
+// // // //             </Button>
+// // // //           </Link>
+
+// // // //           {hasMinimumRole("Manager") && (
+// // // //             <Link href="/students">
+// // // //               <Button
+// // // //                 variant="outline"
+// // // //                 className="h-24 w-full flex-col space-y-2 hover:bg-blue-50 hover:border-blue-300 bg-gradient-to-br from-white to-blue-50 shadow-md hover:shadow-lg transition-all duration-200 border-blue-200"
+// // // //               >
+// // // //                 <div className="p-2 bg-blue-100 rounded-lg">
+// // // //                   <UserCheck className="h-6 w-6 text-blue-600" />
+// // // //                 </div>
+// // // //                 <span className="text-sm font-semibold text-blue-700">Manage Students</span>
+// // // //               </Button>
+// // // //             </Link>
+// // // //           )}
+
+// // // //           <Link href="/attendance">
+// // // //             <Button
+// // // //               variant="outline"
+// // // //               className="h-24 w-full flex-col space-y-2 hover:bg-green-50 hover:border-green-300 bg-gradient-to-br from-white to-green-50 shadow-md hover:shadow-lg transition-all duration-200 border-green-200"
+// // // //             >
+// // // //               <div className="p-2 bg-green-100 rounded-lg">
+// // // //                 <Calendar className="h-6 w-6 text-green-600" />
+// // // //               </div>
+// // // //               <span className="text-sm font-semibold text-green-700">Attendance</span>
+// // // //             </Button>
+// // // //           </Link>
+
+// // // //           <Link href="/leave-approval">
+// // // //             <Button
+// // // //               variant="outline"
+// // // //               className="h-24 w-full flex-col space-y-2 hover:bg-orange-50 hover:border-orange-300 bg-gradient-to-br from-white to-orange-50 shadow-md hover:shadow-lg transition-all duration-200 border-orange-200 relative"
+// // // //             >
+// // // //               <div className="p-2 bg-orange-100 rounded-lg">
+// // // //                 <CheckCircle className="h-6 w-6 text-orange-600" />
+// // // //               </div>
+// // // //               <span className="text-sm font-semibold text-orange-700">Leave Approval</span>
+// // // //               {leaveStats.pending > 0 && (
+// // // //                 <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
+// // // //                   {leaveStats.pending}
+// // // //                 </div>
+// // // //               )}
+// // // //             </Button>
+// // // //           </Link>
+
+// // // //           {user.role === "Admin" && (
+// // // //             <Link href="/reports">
+// // // //               <Button
+// // // //                 variant="outline"
+// // // //                 className="h-24 w-full flex-col space-y-2 hover:bg-purple-50 hover:border-purple-300 bg-gradient-to-br from-white to-purple-50 shadow-md hover:shadow-lg transition-all duration-200 border-purple-200"
+// // // //               >
+// // // //                 <div className="p-2 bg-purple-100 rounded-lg">
+// // // //                   <FileText className="h-6 w-6 text-purple-600" />
+// // // //                 </div>
+// // // //                 <span className="text-sm font-semibold text-purple-700">Reports</span>
+// // // //               </Button>
+// // // //             </Link>
+// // // //           )}
+// // // //         </div>
+// // // //       )}
+
+// // // //       {!hasMinimumRole("Manager") && !isStudent && (
+// // // //         <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+// // // //           <Link href="/faceid">
+// // // //             <Button
+// // // //               variant="outline"
+// // // //               className="h-24 w-full flex-col space-y-2 hover:bg-green-50 hover:border-green-300 bg-gradient-to-br from-white to-green-50 shadow-md hover:shadow-lg transition-all duration-200 border-green-200"
+// // // //             >
+// // // //               <div className="p-2 bg-green-100 rounded-lg">
+// // // //                 <UserCheck className="h-4 w-4 text-green-600" />
+// // // //               </div>
+// // // //               <span className="text-sm font-semibold text-green-700">Mark Attendance</span>
+// // // //             </Button>
+// // // //           </Link>
+
+// // // //           <Link href="/student-attendance">
+// // // //             <Button
+// // // //               variant="outline"
+// // // //               className="h-24 w-full flex-col space-y-2 hover:bg-blue-50 hover:border-blue-300 bg-gradient-to-br from-white to-blue-50 shadow-md hover:shadow-lg transition-all duration-200 border-blue-200"
+// // // //             >
+// // // //               <div className="p-2 bg-blue-100 rounded-lg">
+// // // //                 <Calendar className="h-4 w-4 text-blue-600" />
+// // // //               </div>
+// // // //               <span className="text-sm font-semibold text-blue-700">My Attendance</span>
+// // // //             </Button>
+// // // //           </Link>
+
+// // // //           <Link href="/leave-requests">
+// // // //             <Button
+// // // //               variant="outline"
+// // // //               className="h-24 w-full flex-col space-y-2 hover:bg-orange-50 hover:border-orange-300 bg-gradient-to-br from-white to-orange-50 shadow-md hover:shadow-lg transition-all duration-200 border-orange-200"
+// // // //             >
+// // // //               <div className="p-2 bg-orange-100 rounded-lg">
+// // // //                 <ClipboardList className="h-4 w-4 text-orange-600" />
+// // // //               </div>
+// // // //               <span className="text-sm font-semibold text-orange-700">Request Leave</span>
+// // // //               {leaveStats.myRequests > 0 && (
+// // // //                 <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
+// // // //                   {leaveStats.myRequests}
+// // // //                 </span>
+// // // //               )}
+// // // //             </Button>
+// // // //           </Link>
+// // // //         </div>
+// // // //       )}
+
+// // // //       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+// // // //         <Card className="bg-gradient-to-br from-teal-50 to-cyan-100 border-teal-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // //           <CardHeader>
+// // // //             <CardTitle className="text-teal-700 flex items-center gap-2">
+// // // //               <div className="p-1 bg-teal-200 rounded-lg">
+// // // //                 <UserCheck className="h-4 w-4" />
+// // // //               </div>
+// // // //               Today Present
+// // // //             </CardTitle>
+// // // //           </CardHeader>
+// // // //           <CardContent>
+// // // //             <div className="text-4xl font-bold text-teal-700">{summary.todayPresent}</div>
+// // // //           </CardContent>
+// // // //         </Card>
+// // // //         <Card className="bg-gradient-to-br from-amber-50 to-orange-100 border-amber-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // //           <CardHeader>
+// // // //             <CardTitle className="text-amber-700 flex items-center gap-2">
+// // // //               <div className="p-1 bg-amber-200 rounded-lg">
+// // // //                 <Users className="h-4 w-4" />
+// // // //               </div>
+// // // //               Today Absent
+// // // //             </CardTitle>
+// // // //           </CardHeader>
+// // // //           <CardContent>
+// // // //             <div className="text-4xl font-bold text-amber-700">{summary.todayAbsent}</div>
+// // // //           </CardContent>
+// // // //         </Card>
+// // // //         <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // // //           <CardHeader>
+// // // //             <CardTitle className="text-blue-700 flex items-center gap-2">
+// // // //               <div className="p-1 bg-blue-200 rounded-lg">
+// // // //                 <Calendar className="h-4 w-4" />
+// // // //               </div>
+// // // //               On Leave Today
+// // // //             </CardTitle>
+// // // //           </CardHeader>
+// // // //           <CardContent>
+// // // //             <div className="text-4xl font-bold text-blue-700">{summary.todayLeave || 0}</div>
+// // // //           </CardContent>
+// // // //         </Card>
+// // // //       </div>
+
+// // // //       {hasMinimumRole("Manager") && (
+// // // //         <>
+// // // //           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+// // // //             <BarChartCard title="By Department (Today)" data={summary.byDepartment} />
+// // // //             <BarChartCard title="By Role (Today)" data={summary.byRole} />
+// // // //           </div>
+
+// // // //           <LineChartCard title="Last 7 Days" data={summary.last7Days} />
+
+// // // //           <BarChartCard title="By Shift (Today)" data={summary.byShift} />
+// // // //         </>
+// // // //       )}
+// // // //     </div>
+// // // //   )
+// // // // }
+
+
+
+// // // "use client"
+
+// // // import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+// // // import BarChartCard from "@/components/dashboard/bar-chart-card"
+// // // import LineChartCard from "@/components/dashboard/line-chart-card"
+// // // import { useEffect, useState } from "react"
+// // // import { getStoredUser, hasMinimumRole, type User } from "@/lib/auth"
+// // // import { Button } from "@/components/ui/button"
+// // // import { Users, UserCheck, Calendar, FileText, ClipboardList, CheckCircle } from "lucide-react"
+// // // import Link from "next/link"
+// // // import LiveTimeDisplay from "@/components/live-time-display"
+// // // import { AttendanceCalendar } from "@/components/attendance-calendar"
+// // // import { getStudentAttendance } from "@/lib/student-attendance" // Added import for studentAttendance
+// // // import StudentDashboardWidgets from "@/components/student-dashboard-widgets" // Import for student stats
+
+// // // type Summary = {
+// // //   todayPresent: number
+// // //   todayAbsent: number
+// // //   todayLeave: number // Added todayLeave field
+// // //   byDepartment: { name: string; present: number; absent: number }[]
+// // //   byRole: { name: string; present: number; absent: number }[]
+// // //   byShift: { name: string; present: number; absent: number }[]
+// // //   last7Days: { date: string; present: number; absent: number }[]
+// // //   totalPeople: number
+// // // }
+
+// // // const fetcher = (url: string) => fetch(url).then((r) => r.json())
+
+// // // export default function DashboardPage() {
+// // //   const [summary, setSummary] = useState<Summary | null>(null)
+// // //   const [user, setUser] = useState<User | null>(null)
+// // //   const [loading, setLoading] = useState(true)
+// // //   const [leaveStats, setLeaveStats] = useState({ pending: 0, myRequests: 0 })
+// // //   const [resolvedStudentId, setResolvedStudentId] = useState<string | null>(null)
+// // //   const [studentAttendance, setStudentAttendance] = useState<any | null>(null) // Declared studentAttendance state
+
+// // //   const roleNormalized = user?.role ? String(user.role).trim().toLowerCase() : ""
+// // //   const isStudent = roleNormalized === "student"
+// // //   const quickStudentId = (user as any)?.id || (user as any)?._id?.toString?.()
+// // //   const computedStudentId = resolvedStudentId || quickStudentId
+
+// // //   useEffect(() => {
+// // //     const storedUser = getStoredUser()
+// // //     setUser(storedUser)
+
+// // //     const initialId = (storedUser as any)?.id || (storedUser as any)?._id?.toString?.() || null
+// // //     if (initialId) {
+// // //       setResolvedStudentId(initialId)
+// // //     }
+
+// // //     const tryResolveStudentId = async () => {
+// // //       try {
+// // //         const roleNorm = storedUser?.role ? String(storedUser.role).trim().toLowerCase() : ""
+// // //         if (roleNorm !== "student") return
+// // //         if (initialId) return
+
+// // //         const inst = storedUser?.role !== "SuperAdmin" ? storedUser?.institutionName : undefined
+// // //         const url = inst ? `/api/students?institutionName=${encodeURIComponent(inst)}` : "/api/students"
+// // //         const res = await fetch(url, { cache: "no-store" })
+// // //         if (!res.ok) return
+// // //         const payload = await res.json()
+// // //         const items: any[] = Array.isArray(payload?.items) ? payload.items : []
+
+// // //         const found = items.find(
+// // //           (s) =>
+// // //             (storedUser?.email && s?.email === storedUser.email) || (storedUser as any)?.rollNumber === s?.rollNumber,
+// // //         )
+// // //         if (found?.id) {
+// // //           setResolvedStudentId(found.id)
+// // //         }
+// // //       } catch (e) {
+// // //         console.error("[v0] Failed to resolve studentId:", e)
+// // //       }
+// // //     }
+
+// // //     tryResolveStudentId()
+
+// // //     const fetchSummary = async () => {
+// // //       try {
+// // //         const inst = storedUser?.role !== "SuperAdmin" ? storedUser?.institutionName : undefined
+// // //         const url = inst ? `/api/reports/summary?institutionName=${encodeURIComponent(inst)}` : "/api/reports/summary"
+// // //         const res = await fetch(url, { cache: "no-store" })
+// // //         if (res.ok) {
+// // //           const data = await res.json()
+// // //           setSummary(data)
+// // //         }
+// // //       } catch (error) {
+// // //         console.error("Failed to fetch summary:", error)
+// // //       } finally {
+// // //         setLoading(false)
+// // //       }
+// // //     }
+
+// // //     const fetchLeaveStats = async () => {
+// // //       if (!storedUser) return
+
+// // //       try {
+// // //         const storedId = (storedUser as any)?.id || (storedUser as any)?._id?.toString?.()
+
+// // //         if (!storedId) {
+// // //           setLeaveStats({ pending: 0, myRequests: 0 })
+// // //           return
+// // //         }
+
+// // //         const myRequestsRes = await fetch(`/api/leave-requests?personId=${storedId}`)
+// // //         if (myRequestsRes.ok) {
+// // //           const myData = await myRequestsRes.json()
+// // //           const myRequestsCount = myData.leaveRequests?.length || 0
+
+// // //           let pendingCount = 0
+// // //           if (hasMinimumRole("Manager")) {
+// // //             const inst = storedUser?.role !== "SuperAdmin" ? storedUser?.institutionName : undefined
+// // //             const pUrl = `/api/leave-requests?status=pending${inst ? `&institutionName=${encodeURIComponent(inst)}` : ""}`
+// // //             const pendingRes = await fetch(pUrl)
+// // //             if (pendingRes.ok) {
+// // //               const pendingData = await pendingRes.json()
+// // //               pendingCount = pendingData.leaveRequests?.length || 0
+// // //             }
+// // //           }
+
+// // //           setLeaveStats({ pending: pendingCount, myRequests: myRequestsCount })
+// // //         }
+// // //       } catch (error) {
+// // //         console.error("Failed to fetch leave stats:", error)
+// // //       }
+// // //     }
+
+// // //     const fetchStudentAttendance = async () => {
+// // //       if (!computedStudentId) return
+
+// // //       try {
+// // //         const data = await getStudentAttendance(computedStudentId)
+// // //         setStudentAttendance(data)
+// // //       } catch (error) {
+// // //         console.error("Failed to fetch student attendance:", error)
+// // //       }
+// // //     }
+
+// // //     fetchSummary()
+// // //     fetchLeaveStats()
+// // //     fetchStudentAttendance()
+// // //   }, [])
+
+// // //   if (loading || !user) {
+// // //     return (
+// // //       <div className="flex items-center justify-center min-h-[400px]">
+// // //         <div className="text-center">
+// // //           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
+// // //           <p className="text-gray-600">Loading dashboard...</p>
+// // //         </div>
+// // //       </div>
+// // //     )
+// // //   }
+
+// // //   if (isStudent) {
+// // //     const stats = studentAttendance?.stats || {
+// // //       attendancePercentage: 0,
+// // //       presentDays: 0,
+// // //       totalDays: 0,
+// // //     }
+
+// // //     const attendanceData = {
+// // //       present: studentAttendance?.records?.filter((r: any) => r.status === "present") || [],
+// // //       absent: studentAttendance?.records?.filter((r: any) => r.status === "absent") || [],
+// // //       late: studentAttendance?.records?.filter((r: any) => r.status === "late") || [],
+// // //       leave: studentAttendance?.records?.filter((r: any) => r.status === "leave") || [],
+// // //     }
+
+// // //     return (
+// // //       <div className="space-y-6">
+// // //         {user.institutionName && (
+// // //           <div className="inline-flex items-center gap-2 text-xs font-medium text-teal-700 bg-teal-50 border border-teal-200 px-2 py-1 rounded">
+// // //             {user.institutionName}
+// // //           </div>
+// // //         )}
+// // //         <header className="space-y-1">
+// // //           <h1 className="text-balance text-3xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
+// // //             Welcome back, {user.name}!
+// // //           </h1>
+// // //           <p className="text-sm text-gray-600">Student Dashboard - View your attendance and quick actions.</p>
+// // //         </header>
+
+// // //         <LiveTimeDisplay />
+
+// // //         {/* Replace the inline stat cards with the reusable StudentDashboardWidgets */}
+// // //         <StudentDashboardWidgets studentId={computedStudentId as string} />
+
+// // //         {/* Keep the calendar below for monthly overview */}
+// // //         <AttendanceCalendar attendanceData={attendanceData} />
+
+// // //         <Card className="shadow-lg">
+// // //           <CardHeader>
+// // //             <CardTitle className="text-gray-800">Recent Attendance</CardTitle>
+// // //           </CardHeader>
+// // //           <CardContent>
+// // //             {studentAttendance?.records?.slice(0, 5).map((record: any) => (
+// // //               <div
+// // //                 key={record.id}
+// // //                 className="flex justify-between items-center py-3 border-b last:border-b-0 hover:bg-gray-50 rounded-lg px-2 transition-colors duration-200"
+// // //               >
+// // //                 <span className="text-sm text-gray-700 font-medium">
+// // //                   {new Date(record.date).toLocaleDateString("en-US", {
+// // //                     weekday: "short",
+// // //                     month: "short",
+// // //                     day: "numeric",
+// // //                   })}
+// // //                 </span>
+// // //                 <span
+// // //                   className={`px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
+// // //                     record.status === "present"
+// // //                       ? "bg-green-100 text-green-800 border border-green-200"
+// // //                       : record.status === "absent"
+// // //                         ? "bg-red-100 text-red-800 border border-red-200"
+// // //                         : record.status === "late"
+// // //                           ? "bg-amber-100 text-amber-800 border border-amber-200"
+// // //                           : "bg-orange-100 text-orange-800 border border-orange-200"
+// // //                   }`}
+// // //                 >
+// // //                   {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+// // //                 </span>
+// // //               </div>
+// // //             )) || <p className="text-sm text-gray-500 text-center py-8">No attendance records found</p>}
+// // //           </CardContent>
+// // //         </Card>
+// // //       </div>
+// // //     )
+// // //   }
+
+// // //   if (!summary) {
+// // //     return (
+// // //       <div className="flex items-center justify-center min-h-[400px]">
+// // //         <div className="text-center">
+// // //           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
+// // //           <p className="text-gray-600">Loading dashboard...</p>
+// // //         </div>
+// // //       </div>
+// // //     )
+// // //   }
+
+// // //   return (
+// // //     <div className="space-y-6">
+// // //       {user.institutionName && (
+// // //         <div className="inline-flex items-center gap-2 text-xs font-medium text-teal-700 bg-teal-50 border border-teal-200 px-2 py-1 rounded">
+// // //           {user.institutionName}
+// // //         </div>
+// // //       )}
+// // //       <header className="space-y-1">
+// // //         <h1 className="text-balance text-3xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
+// // //           Welcome back, {user.name}!
+// // //         </h1>
+// // //         <p className="text-sm text-gray-600">
+// // //           {user.role} Dashboard - Real-time overview by department, role, shift, and trends.
+// // //         </p>
+// // //       </header>
+
+// // //       <LiveTimeDisplay />
+
+// // //       {hasMinimumRole("Manager") && (
+// // //         <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+// // //           <Link href="/staff">
+// // //             <Button
+// // //               variant="outline"
+// // //               className="h-24 w-full flex-col space-y-2 hover:bg-teal-50 hover:border-teal-300 bg-gradient-to-br from-white to-teal-50 shadow-md hover:shadow-lg transition-all duration-200 border-teal-200"
+// // //             >
+// // //               <div className="p-2 bg-teal-100 rounded-lg">
+// // //                 <Users className="h-6 w-6 text-teal-600" />
+// // //               </div>
+// // //               <span className="text-sm font-semibold text-teal-700">Manage Staff</span>
+// // //             </Button>
+// // //           </Link>
+
+// // //           {hasMinimumRole("Manager") && (
+// // //             <Link href="/students">
+// // //               <Button
+// // //                 variant="outline"
+// // //                 className="h-24 w-full flex-col space-y-2 hover:bg-blue-50 hover:border-blue-300 bg-gradient-to-br from-white to-blue-50 shadow-md hover:shadow-lg transition-all duration-200 border-blue-200"
+// // //               >
+// // //                 <div className="p-2 bg-blue-100 rounded-lg">
+// // //                   <UserCheck className="h-6 w-6 text-blue-600" />
+// // //                 </div>
+// // //                 <span className="text-sm font-semibold text-blue-700">Manage Students</span>
+// // //               </Button>
+// // //             </Link>
+// // //           )}
+
+// // //           <Link href="/attendance">
+// // //             <Button
+// // //               variant="outline"
+// // //               className="h-24 w-full flex-col space-y-2 hover:bg-green-50 hover:border-green-300 bg-gradient-to-br from-white to-green-50 shadow-md hover:shadow-lg transition-all duration-200 border-green-200"
+// // //             >
+// // //               <div className="p-2 bg-green-100 rounded-lg">
+// // //                 <Calendar className="h-6 w-6 text-green-600" />
+// // //               </div>
+// // //               <span className="text-sm font-semibold text-green-700">Attendance</span>
+// // //             </Button>
+// // //           </Link>
+
+// // //           <Link href="/leave-approval">
+// // //             <Button
+// // //               variant="outline"
+// // //               className="h-24 w-full flex-col space-y-2 hover:bg-orange-50 hover:border-orange-300 bg-gradient-to-br from-white to-orange-50 shadow-md hover:shadow-lg transition-all duration-200 border-orange-200 relative"
+// // //             >
+// // //               <div className="p-2 bg-orange-100 rounded-lg">
+// // //                 <CheckCircle className="h-6 w-6 text-orange-600" />
+// // //               </div>
+// // //               <span className="text-sm font-semibold text-orange-700">Leave Approval</span>
+// // //               {leaveStats.pending > 0 && (
+// // //                 <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
+// // //                   {leaveStats.pending}
+// // //                 </div>
+// // //               )}
+// // //             </Button>
+// // //           </Link>
+
+// // //           {user.role === "Admin" && (
+// // //             <Link href="/reports">
+// // //               <Button
+// // //                 variant="outline"
+// // //                 className="h-24 w-full flex-col space-y-2 hover:bg-purple-50 hover:border-purple-300 bg-gradient-to-br from-white to-purple-50 shadow-md hover:shadow-lg transition-all duration-200 border-purple-200"
+// // //               >
+// // //                 <div className="p-2 bg-purple-100 rounded-lg">
+// // //                   <FileText className="h-6 w-6 text-purple-600" />
+// // //                 </div>
+// // //                 <span className="text-sm font-semibold text-purple-700">Reports</span>
+// // //               </Button>
+// // //             </Link>
+// // //           )}
+// // //         </div>
+// // //       )}
+
+// // //       {!hasMinimumRole("Manager") && !isStudent && (
+// // //         <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+// // //           <Link href="/faceid">
+// // //             <Button
+// // //               variant="outline"
+// // //               className="h-24 w-full flex-col space-y-2 hover:bg-green-50 hover:border-green-300 bg-gradient-to-br from-white to-green-50 shadow-md hover:shadow-lg transition-all duration-200 border-green-200"
+// // //             >
+// // //               <div className="p-2 bg-green-100 rounded-lg">
+// // //                 <UserCheck className="h-4 w-4 text-green-600" />
+// // //               </div>
+// // //               <span className="text-sm font-semibold text-green-700">Mark Attendance</span>
+// // //             </Button>
+// // //           </Link>
+
+// // //           <Link href="/student-attendance">
+// // //             <Button
+// // //               variant="outline"
+// // //               className="h-24 w-full flex-col space-y-2 hover:bg-blue-50 hover:border-blue-300 bg-gradient-to-br from-white to-blue-50 shadow-md hover:shadow-lg transition-all duration-200 border-blue-200"
+// // //             >
+// // //               <div className="p-2 bg-blue-100 rounded-lg">
+// // //                 <Calendar className="h-4 w-4 text-blue-600" />
+// // //               </div>
+// // //               <span className="text-sm font-semibold text-blue-700">My Attendance</span>
+// // //             </Button>
+// // //           </Link>
+
+// // //           <Link href="/leave-requests">
+// // //             <Button
+// // //               variant="outline"
+// // //               className="h-24 w-full flex-col space-y-2 hover:bg-orange-50 hover:border-orange-300 bg-gradient-to-br from-white to-orange-50 shadow-md hover:shadow-lg transition-all duration-200 border-orange-200"
+// // //             >
+// // //               <div className="p-2 bg-orange-100 rounded-lg">
+// // //                 <ClipboardList className="h-4 w-4 text-orange-600" />
+// // //               </div>
+// // //               <span className="text-sm font-semibold text-orange-700">Request Leave</span>
+// // //               {leaveStats.myRequests > 0 && (
+// // //                 <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
+// // //                   {leaveStats.myRequests}
+// // //                 </span>
+// // //               )}
+// // //             </Button>
+// // //           </Link>
+// // //         </div>
+// // //       )}
+
+// // //       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+// // //         <Card className="bg-gradient-to-br from-teal-50 to-cyan-100 border-teal-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // //           <CardHeader>
+// // //             <CardTitle className="text-teal-700 flex items-center gap-2">
+// // //               <div className="p-1 bg-teal-200 rounded-lg">
+// // //                 <UserCheck className="h-4 w-4" />
+// // //               </div>
+// // //               Today Present
+// // //             </CardTitle>
+// // //           </CardHeader>
+// // //           <CardContent>
+// // //             <div className="text-4xl font-bold text-teal-700">{summary.todayPresent}</div>
+// // //           </CardContent>
+// // //         </Card>
+// // //         <Card className="bg-gradient-to-br from-amber-50 to-orange-100 border-amber-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // //           <CardHeader>
+// // //             <CardTitle className="text-amber-700 flex items-center gap-2">
+// // //               <div className="p-1 bg-amber-200 rounded-lg">
+// // //                 <Users className="h-4 w-4" />
+// // //               </div>
+// // //               Today Absent
+// // //             </CardTitle>
+// // //           </CardHeader>
+// // //           <CardContent>
+// // //             <div className="text-4xl font-bold text-amber-700">{summary.todayAbsent}</div>
+// // //           </CardContent>
+// // //         </Card>
+// // //         <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// // //           <CardHeader>
+// // //             <CardTitle className="text-blue-700 flex items-center gap-2">
+// // //               <div className="p-1 bg-blue-200 rounded-lg">
+// // //                 <Calendar className="h-4 w-4" />
+// // //               </div>
+// // //               On Leave Today
+// // //             </CardTitle>
+// // //           </CardHeader>
+// // //           <CardContent>
+// // //             <div className="text-4xl font-bold text-blue-700">{summary.todayLeave || 0}</div>
+// // //           </CardContent>
+// // //         </Card>
+// // //       </div>
+
+// // //       {hasMinimumRole("Manager") && (
+// // //         <>
+// // //           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+// // //             <BarChartCard title="By Department (Today)" data={summary.byDepartment} />
+// // //             <BarChartCard title="By Role (Today)" data={summary.byRole} />
+// // //           </div>
+
+// // //           <LineChartCard title="Last 7 Days" data={summary.last7Days} />
+
+// // //           <BarChartCard title="By Shift (Today)" data={summary.byShift} />
+// // //         </>
+// // //       )}
+// // //     </div>
+// // //   )
+// // // }
+
+
+// // "use client"
+
+// // import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+// // import BarChartCard from "@/components/dashboard/bar-chart-card"
+// // import LineChartCard from "@/components/dashboard/line-chart-card"
+// // import { useEffect, useState } from "react"
+// // import { getStoredUser, hasMinimumRole, type User } from "@/lib/auth"
+// // import { Button } from "@/components/ui/button"
+// // import { Users, UserCheck, Calendar, FileText, ClipboardList, CheckCircle } from "lucide-react"
+// // import Link from "next/link"
+// // import LiveTimeDisplay from "@/components/live-time-display"
+// // import { AttendanceCalendar } from "@/components/attendance-calendar"
+// // import { getStudentAttendance } from "@/lib/student-attendance" // Added import for studentAttendance
+// // import StudentDashboardWidgets from "@/components/student-dashboard-widgets" // Import for student stats
+
+// // type Summary = {
+// //   todayPresent: number
+// //   todayAbsent: number
+// //   todayLeave: number // Added todayLeave field
+// //   byDepartment: { name: string; present: number; absent: number }[]
+// //   byRole: { name: string; present: number; absent: number }[]
+// //   byShift: { name: string; present: number; absent: number }[]
+// //   last7Days: { date: string; present: number; absent: number }[]
+// //   totalPeople: number
+// // }
+
+// // const fetcher = (url: string) => fetch(url).then((r) => r.json())
+
+// // export default function DashboardPage() {
+// //   const [summary, setSummary] = useState<Summary | null>(null)
+// //   const [user, setUser] = useState<User | null>(null)
+// //   const [loading, setLoading] = useState(true)
+// //   const [leaveStats, setLeaveStats] = useState({ pending: 0, myRequests: 0 })
+// //   const [resolvedStudentId, setResolvedStudentId] = useState<string | null>(null)
+// //   const [studentAttendance, setStudentAttendance] = useState<any | null>(null) // Declared studentAttendance state
+
+// //   const roleNormalized = user?.role ? String(user.role).trim().toLowerCase() : ""
+// //   const isStudent = roleNormalized === "student"
+// //   const quickStudentId = (user as any)?.id || (user as any)?._id?.toString?.()
+// //   const computedStudentId = resolvedStudentId || quickStudentId
+
+// //   useEffect(() => {
+// //     const storedUser = getStoredUser()
+// //     setUser(storedUser)
+
+// //     const initialId = (storedUser as any)?.id || (storedUser as any)?._id?.toString?.() || null
+// //     if (initialId) {
+// //       setResolvedStudentId(initialId)
+// //     }
+
+// //     const tryResolveStudentId = async () => {
+// //       try {
+// //         const roleNorm = storedUser?.role ? String(storedUser.role).trim().toLowerCase() : ""
+// //         if (roleNorm !== "student") return
+// //         if (initialId) return
+
+// //         const inst = storedUser?.role !== "SuperAdmin" ? storedUser?.institutionName : undefined
+// //         const url = inst ? `/api/students?institutionName=${encodeURIComponent(inst)}` : "/api/students"
+// //         const res = await fetch(url, { cache: "no-store" })
+// //         if (!res.ok) return
+// //         const payload = await res.json()
+// //         const items: any[] = Array.isArray(payload?.items) ? payload.items : []
+
+// //         const found = items.find(
+// //           (s) =>
+// //             (storedUser?.email && s?.email === storedUser.email) || (storedUser as any)?.rollNumber === s?.rollNumber,
+// //         )
+// //         if (found?.id) {
+// //           setResolvedStudentId(found.id)
+// //         }
+// //       } catch (e) {
+// //         console.error("[v0] Failed to resolve studentId:", e)
+// //       }
+// //     }
+
+// //     tryResolveStudentId()
+
+// //     const fetchSummary = async () => {
+// //       try {
+// //         const inst = storedUser?.role !== "SuperAdmin" ? storedUser?.institutionName : undefined
+// //         const url = inst ? `/api/reports/summary?institutionName=${encodeURIComponent(inst)}` : "/api/reports/summary"
+// //         const res = await fetch(url, { cache: "no-store" })
+// //         if (res.ok) {
+// //           const data = await res.json()
+// //           setSummary(data)
+// //         }
+// //       } catch (error) {
+// //         console.error("Failed to fetch summary:", error)
+// //       } finally {
+// //         setLoading(false)
+// //       }
+// //     }
+
+// //     const fetchLeaveStats = async () => {
+// //       if (!storedUser) return
+
+// //       try {
+// //         const storedId = (storedUser as any)?.id || (storedUser as any)?._id?.toString?.()
+
+// //         if (!storedId) {
+// //           setLeaveStats({ pending: 0, myRequests: 0 })
+// //           return
+// //         }
+
+// //         const myRequestsRes = await fetch(`/api/leave-requests?personId=${storedId}`)
+// //         if (myRequestsRes.ok) {
+// //           const myData = await myRequestsRes.json()
+// //           const myRequestsCount = myData.leaveRequests?.length || 0
+
+// //           let pendingCount = 0
+// //           if (hasMinimumRole("Manager")) {
+// //             const inst = storedUser?.role !== "SuperAdmin" ? storedUser?.institutionName : undefined
+// //             const pUrl = `/api/leave-requests?status=pending${inst ? `&institutionName=${encodeURIComponent(inst)}` : ""}`
+// //             const pendingRes = await fetch(pUrl)
+// //             if (pendingRes.ok) {
+// //               const pendingData = await pendingRes.json()
+// //               pendingCount = pendingData.leaveRequests?.length || 0
+// //             }
+// //           }
+
+// //           setLeaveStats({ pending: pendingCount, myRequests: myRequestsCount })
+// //         }
+// //       } catch (error) {
+// //         console.error("Failed to fetch leave stats:", error)
+// //       }
+// //     }
+
+// //     fetchSummary()
+// //     fetchLeaveStats()
+// //   }, [])
+
+// //   useEffect(() => {
+// //     if (!computedStudentId) return
+// //     ;(async () => {
+// //       try {
+// //         const data = await getStudentAttendance(computedStudentId)
+// //         setStudentAttendance(data)
+// //       } catch (error) {
+// //         console.error("Failed to fetch student attendance:", error)
+// //       }
+// //     })()
+// //   }, [computedStudentId])
+
+// //   if (loading || !user) {
+// //     return (
+// //       <div className="flex items-center justify-center min-h-[400px]">
+// //         <div className="text-center">
+// //           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
+// //           <p className="text-gray-600">Loading dashboard...</p>
+// //         </div>
+// //       </div>
+// //     )
+// //   }
+
+// //   if (isStudent) {
+// //     const stats = studentAttendance?.stats || {
+// //       attendancePercentage: 0,
+// //       presentDays: 0,
+// //       totalDays: 0,
+// //     }
+
+// //     const attendanceData = {
+// //       present: studentAttendance?.records?.filter((r: any) => r.status === "present") || [],
+// //       absent: studentAttendance?.records?.filter((r: any) => r.status === "absent") || [],
+// //       late: studentAttendance?.records?.filter((r: any) => r.status === "late") || [],
+// //       leave: studentAttendance?.records?.filter((r: any) => r.status === "leave") || [],
+// //     }
+
+// //     return (
+// //       <div className="space-y-6">
+// //         {user.institutionName && (
+// //           <div className="inline-flex items-center gap-2 text-xs font-medium text-teal-700 bg-teal-50 border border-teal-200 px-2 py-1 rounded">
+// //             {user.institutionName}
+// //           </div>
+// //         )}
+// //         <header className="space-y-1">
+// //           <h1 className="text-balance text-3xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
+// //             Welcome back, {user.name}!
+// //           </h1>
+// //           <p className="text-sm text-gray-600">Student Dashboard - View your attendance and quick actions.</p>
+// //         </header>
+
+// //         <LiveTimeDisplay />
+
+// //         {computedStudentId ? (
+// //           <StudentDashboardWidgets studentId={computedStudentId} />
+// //         ) : (
+// //           <div className="text-sm text-muted-foreground">
+// //             Resolving your student profile… Please wait or re-login if this persists.
+// //           </div>
+// //         )}
+
+// //         <AttendanceCalendar attendanceData={attendanceData} />
+
+// //         <Card className="shadow-lg">
+// //           <CardHeader>
+// //             <CardTitle className="text-gray-800">Recent Attendance</CardTitle>
+// //           </CardHeader>
+// //           <CardContent>
+// //             {studentAttendance?.records?.slice(0, 5).map((record: any) => (
+// //               <div
+// //                 key={record.id}
+// //                 className="flex justify-between items-center py-3 border-b last:border-b-0 hover:bg-gray-50 rounded-lg px-2 transition-colors duration-200"
+// //               >
+// //                 <span className="text-sm text-gray-700 font-medium">
+// //                   {new Date(record.date).toLocaleDateString("en-US", {
+// //                     weekday: "short",
+// //                     month: "short",
+// //                     day: "numeric",
+// //                   })}
+// //                 </span>
+// //                 <span
+// //                   className={`px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
+// //                     record.status === "present"
+// //                       ? "bg-green-100 text-green-800 border border-green-200"
+// //                       : record.status === "absent"
+// //                         ? "bg-red-100 text-red-800 border border-red-200"
+// //                         : record.status === "late"
+// //                           ? "bg-amber-100 text-amber-800 border border-amber-200"
+// //                           : "bg-orange-100 text-orange-800 border border-orange-200"
+// //                   }`}
+// //                 >
+// //                   {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+// //                 </span>
+// //               </div>
+// //             )) || <p className="text-sm text-gray-500 text-center py-8">No attendance records found</p>}
+// //           </CardContent>
+// //         </Card>
+// //       </div>
+// //     )
+// //   }
+
+// //   if (!summary) {
+// //     return (
+// //       <div className="flex items-center justify-center min-h-[400px]">
+// //         <div className="text-center">
+// //           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
+// //           <p className="text-gray-600">Loading dashboard...</p>
+// //         </div>
+// //       </div>
+// //     )
+// //   }
+
+// //   return (
+// //     <div className="space-y-6">
+// //       {user.institutionName && (
+// //         <div className="inline-flex items-center gap-2 text-xs font-medium text-teal-700 bg-teal-50 border border-teal-200 px-2 py-1 rounded">
+// //           {user.institutionName}
+// //         </div>
+// //       )}
+// //       <header className="space-y-1">
+// //         <h1 className="text-balance text-3xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
+// //           Welcome back, {user.name}!
+// //         </h1>
+// //         <p className="text-sm text-gray-600">
+// //           {user.role} Dashboard - Real-time overview by department, role, shift, and trends.
+// //         </p>
+// //       </header>
+
+// //       <LiveTimeDisplay />
+
+// //       {hasMinimumRole("Manager") && (
+// //         <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+// //           <Link href="/staff">
+// //             <Button
+// //               variant="outline"
+// //               className="h-24 w-full flex-col space-y-2 hover:bg-teal-50 hover:border-teal-300 bg-gradient-to-br from-white to-teal-50 shadow-md hover:shadow-lg transition-all duration-200 border-teal-200"
+// //             >
+// //               <div className="p-2 bg-teal-100 rounded-lg">
+// //                 <Users className="h-6 w-6 text-teal-600" />
+// //               </div>
+// //               <span className="text-sm font-semibold text-teal-700">Manage Staff</span>
+// //             </Button>
+// //           </Link>
+
+// //           {hasMinimumRole("Manager") && (
+// //             <Link href="/students">
+// //               <Button
+// //                 variant="outline"
+// //                 className="h-24 w-full flex-col space-y-2 hover:bg-blue-50 hover:border-blue-300 bg-gradient-to-br from-white to-blue-50 shadow-md hover:shadow-lg transition-all duration-200 border-blue-200"
+// //               >
+// //                 <div className="p-2 bg-blue-100 rounded-lg">
+// //                   <UserCheck className="h-6 w-6 text-blue-600" />
+// //                 </div>
+// //                 <span className="text-sm font-semibold text-blue-700">Manage Students</span>
+// //               </Button>
+// //             </Link>
+// //           )}
+
+// //           <Link href="/attendance">
+// //             <Button
+// //               variant="outline"
+// //               className="h-24 w-full flex-col space-y-2 hover:bg-green-50 hover:border-green-300 bg-gradient-to-br from-white to-green-50 shadow-md hover:shadow-lg transition-all duration-200 border-green-200"
+// //             >
+// //               <div className="p-2 bg-green-100 rounded-lg">
+// //                 <Calendar className="h-6 w-6 text-green-600" />
+// //               </div>
+// //               <span className="text-sm font-semibold text-green-700">Attendance</span>
+// //             </Button>
+// //           </Link>
+
+// //           <Link href="/leave-approval">
+// //             <Button
+// //               variant="outline"
+// //               className="h-24 w-full flex-col space-y-2 hover:bg-orange-50 hover:border-orange-300 bg-gradient-to-br from-white to-orange-50 shadow-md hover:shadow-lg transition-all duration-200 border-orange-200 relative"
+// //             >
+// //               <div className="p-2 bg-orange-100 rounded-lg">
+// //                 <CheckCircle className="h-6 w-6 text-orange-600" />
+// //               </div>
+// //               <span className="text-sm font-semibold text-orange-700">Leave Approval</span>
+// //               {leaveStats.pending > 0 && (
+// //                 <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
+// //                   {leaveStats.pending}
+// //                 </div>
+// //               )}
+// //             </Button>
+// //           </Link>
+
+// //           {user.role === "Admin" && (
+// //             <Link href="/reports">
+// //               <Button
+// //                 variant="outline"
+// //                 className="h-24 w-full flex-col space-y-2 hover:bg-purple-50 hover:border-purple-300 bg-gradient-to-br from-white to-purple-50 shadow-md hover:shadow-lg transition-all duration-200 border-purple-200"
+// //               >
+// //                 <div className="p-2 bg-purple-100 rounded-lg">
+// //                   <FileText className="h-6 w-6 text-purple-600" />
+// //                 </div>
+// //                 <span className="text-sm font-semibold text-purple-700">Reports</span>
+// //               </Button>
+// //             </Link>
+// //           )}
+// //         </div>
+// //       )}
+
+// //       {!hasMinimumRole("Manager") && !isStudent && (
+// //         <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+// //           <Link href="/faceid">
+// //             <Button
+// //               variant="outline"
+// //               className="h-24 w-full flex-col space-y-2 hover:bg-green-50 hover:border-green-300 bg-gradient-to-br from-white to-green-50 shadow-md hover:shadow-lg transition-all duration-200 border-green-200"
+// //             >
+// //               <div className="p-2 bg-green-100 rounded-lg">
+// //                 <UserCheck className="h-4 w-4 text-green-600" />
+// //               </div>
+// //               <span className="text-sm font-semibold text-green-700">Mark Attendance</span>
+// //             </Button>
+// //           </Link>
+
+// //           <Link href="/student-attendance">
+// //             <Button
+// //               variant="outline"
+// //               className="h-24 w-full flex-col space-y-2 hover:bg-blue-50 hover:border-blue-300 bg-gradient-to-br from-white to-blue-50 shadow-md hover:shadow-lg transition-all duration-200 border-blue-200"
+// //             >
+// //               <div className="p-2 bg-blue-100 rounded-lg">
+// //                 <Calendar className="h-4 w-4 text-blue-600" />
+// //               </div>
+// //               <span className="text-sm font-semibold text-blue-700">My Attendance</span>
+// //             </Button>
+// //           </Link>
+
+// //           <Link href="/leave-requests">
+// //             <Button
+// //               variant="outline"
+// //               className="h-24 w-full flex-col space-y-2 hover:bg-orange-50 hover:border-orange-300 bg-gradient-to-br from-white to-orange-50 shadow-md hover:shadow-lg transition-all duration-200 border-orange-200"
+// //             >
+// //               <div className="p-2 bg-orange-100 rounded-lg">
+// //                 <ClipboardList className="h-4 w-4 text-orange-600" />
+// //               </div>
+// //               <span className="text-sm font-semibold text-orange-700">Request Leave</span>
+// //               {leaveStats.myRequests > 0 && (
+// //                 <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
+// //                   {leaveStats.myRequests}
+// //                 </span>
+// //               )}
+// //             </Button>
+// //           </Link>
+// //         </div>
+// //       )}
+
+// //       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+// //         <Card className="bg-gradient-to-br from-teal-50 to-cyan-100 border-teal-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// //           <CardHeader>
+// //             <CardTitle className="text-teal-700 flex items-center gap-2">
+// //               <div className="p-1 bg-teal-200 rounded-lg">
+// //                 <UserCheck className="h-4 w-4" />
+// //               </div>
+// //               Today Present
+// //             </CardTitle>
+// //           </CardHeader>
+// //           <CardContent>
+// //             <div className="text-4xl font-bold text-teal-700">{summary.todayPresent}</div>
+// //           </CardContent>
+// //         </Card>
+// //         <Card className="bg-gradient-to-br from-amber-50 to-orange-100 border-amber-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// //           <CardHeader>
+// //             <CardTitle className="text-amber-700 flex items-center gap-2">
+// //               <div className="p-1 bg-amber-200 rounded-lg">
+// //                 <Users className="h-4 w-4" />
+// //               </div>
+// //               Today Absent
+// //             </CardTitle>
+// //           </CardHeader>
+// //           <CardContent>
+// //             <div className="text-4xl font-bold text-amber-700">{summary.todayAbsent}</div>
+// //           </CardContent>
+// //         </Card>
+// //         <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+// //           <CardHeader>
+// //             <CardTitle className="text-blue-700 flex items-center gap-2">
+// //               <div className="p-1 bg-blue-200 rounded-lg">
+// //                 <Calendar className="h-4 w-4" />
+// //               </div>
+// //               On Leave Today
+// //             </CardTitle>
+// //           </CardHeader>
+// //           <CardContent>
+// //             <div className="text-4xl font-bold text-blue-700">{summary.todayLeave || 0}</div>
+// //           </CardContent>
+// //         </Card>
+// //       </div>
+
+// //       {hasMinimumRole("Manager") && (
+// //         <>
+// //           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+// //             <BarChartCard title="By Department (Today)" data={summary.byDepartment} />
+// //             <BarChartCard title="By Role (Today)" data={summary.byRole} />
+// //           </div>
+
+// //           <LineChartCard title="Last 7 Days" data={summary.last7Days} />
+
+// //           <BarChartCard title="By Shift (Today)" data={summary.byShift} />
+// //         </>
+// //       )}
+// //     </div>
+// //   )
+// // }
+
+
+
+// "use client"
+
+// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+// import BarChartCard from "@/components/dashboard/bar-chart-card"
+// import LineChartCard from "@/components/dashboard/line-chart-card"
+// import { useEffect, useState } from "react"
+// import { getStoredUser, hasMinimumRole, type User } from "@/lib/auth"
+// import { Button } from "@/components/ui/button"
+// import { Users, UserCheck, Calendar, FileText, ClipboardList, CheckCircle } from "lucide-react"
+// import Link from "next/link"
+// import LiveTimeDisplay from "@/components/live-time-display"
+// import { AttendanceCalendar } from "@/components/attendance-calendar"
+// import StudentDashboardWidgets from "@/components/student-dashboard-widgets" // Import for student stats
+// import useSWR from "swr" // Added SWR import
+
+// type Summary = {
+//   todayPresent: number
+//   todayAbsent: number
+//   todayLeave: number // Added todayLeave field
+//   byDepartment: { name: string; present: number; absent: number }[]
+//   byRole: { name: string; present: number; absent: number }[]
+//   byShift: { name: string; present: number; absent: number }[]
+//   last7Days: { date: string; present: number; absent: number }[]
+//   totalPeople: number
+// }
+
+// const fetcher = (url: string) => fetch(url).then((r) => r.json())
+
+// export default function DashboardPage() {
+//   const [summary, setSummary] = useState<Summary | null>(null)
+//   const [user, setUser] = useState<User | null>(null)
+//   const [loading, setLoading] = useState(true)
+//   const [leaveStats, setLeaveStats] = useState({ pending: 0, myRequests: 0 })
+//   const [resolvedStudentId, setResolvedStudentId] = useState<string | null>(null)
+//   const { data: studentAttendanceData } = useSWR<any>("/api/student-attendance", fetcher) // Updated to use SWR
+//   const { data: studentAttendanceDataById, mutate: mutateStudentAttendance } = useSWR(
+//     resolvedStudentId ? `/api/students/${resolvedStudentId}/attendance` : null,
+//     fetcher,
+//     { revalidateOnFocus: true },
+//   )
+
+//   const quickStudentId = (user as any)?.id || (user as any)?._id?.toString?.()
+//   const computedStudentId = resolvedStudentId || quickStudentId
+
+//   const roleNormalized = user?.role ? String(user.role).trim().toLowerCase() : ""
+//   const isStudent = roleNormalized === "student"
+
+//   const { data: studentAttendanceDataFallback, mutate: mutateStudentAttendanceFallback } = useSWR(
+//     computedStudentId ? `/api/students/${computedStudentId}/attendance` : null,
+//     fetcher,
+//     { revalidateOnFocus: true },
+//   )
+
+//   const getLocalYMD = (d: Date) => {
+//     const y = d.getFullYear()
+//     const m = String(d.getMonth() + 1).padStart(2, "0")
+//     const day = String(d.getDate()).padStart(2, "0")
+//     return `${y}-${m}-${day}`
+//   }
+
+//   useEffect(() => {
+//     const storedUser = getStoredUser()
+//     setUser(storedUser)
+
+//     const initialId = (storedUser as any)?.id || (storedUser as any)?._id?.toString?.() || null
+//     if (initialId) {
+//       setResolvedStudentId(initialId)
+//     }
+
+//     const tryResolveStudentId = async () => {
+//       try {
+//         const roleNorm = storedUser?.role ? String(storedUser.role).trim().toLowerCase() : ""
+//         if (roleNorm !== "student") return
+//         if (initialId) return
+
+//         const inst = storedUser?.role !== "SuperAdmin" ? storedUser?.institutionName : undefined
+//         const url = inst ? `/api/students?institutionName=${encodeURIComponent(inst)}` : "/api/students"
+//         const res = await fetch(url, { cache: "no-store" })
+//         if (!res.ok) return
+//         const payload = await res.json()
+//         const items: any[] = Array.isArray(payload?.items) ? payload.items : []
+
+//         const found = items.find(
+//           (s) =>
+//             (storedUser?.email && s?.email === storedUser.email) || (storedUser as any)?.rollNumber === s?.rollNumber,
+//         )
+//         if (found?.id) {
+//           setResolvedStudentId(found.id)
+//         }
+//       } catch (e) {
+//         console.error("[v0] Failed to resolve studentId:", e)
+//       }
+//     }
+
+//     tryResolveStudentId()
+
+//     const fetchSummary = async () => {
+//       try {
+//         const inst = storedUser?.role !== "SuperAdmin" ? storedUser?.institutionName : undefined
+//         const url = inst ? `/api/reports/summary?institutionName=${encodeURIComponent(inst)}` : "/api/reports/summary"
+//         const res = await fetch(url, { cache: "no-store" })
+//         if (res.ok) {
+//           const data = await res.json()
+//           setSummary(data)
+//         }
+//       } catch (error) {
+//         console.error("Failed to fetch summary:", error)
+//       } finally {
+//         setLoading(false)
+//       }
+//     }
+
+//     const fetchLeaveStats = async () => {
+//       if (!storedUser) return
+
+//       try {
+//         const storedId = (storedUser as any)?.id || (storedUser as any)?._id?.toString?.()
+
+//         if (!storedId) {
+//           setLeaveStats({ pending: 0, myRequests: 0 })
+//           return
+//         }
+
+//         const myRequestsRes = await fetch(`/api/leave-requests?personId=${storedId}`)
+//         if (myRequestsRes.ok) {
+//           const myData = await myRequestsRes.json()
+//           const myRequestsCount = myData.leaveRequests?.length || 0
+
+//           let pendingCount = 0
+//           if (hasMinimumRole("Manager")) {
+//             const inst = storedUser?.role !== "SuperAdmin" ? storedUser?.institutionName : undefined
+//             const pUrl = `/api/leave-requests?status=pending${inst ? `&institutionName=${encodeURIComponent(inst)}` : ""}`
+//             const pendingRes = await fetch(pUrl)
+//             if (pendingRes.ok) {
+//               const pendingData = await pendingRes.json()
+//               pendingCount = pendingData.leaveRequests?.length || 0
+//             }
+//           }
+
+//           setLeaveStats({ pending: pendingCount, myRequests: myRequestsCount })
+//         }
+//       } catch (error) {
+//         console.error("Failed to fetch leave stats:", error)
+//       }
+//     }
+
+//     fetchSummary()
+//     fetchLeaveStats()
+//   }, [])
+
+//   if (loading || !user) {
+//     return (
+//       <div className="flex items-center justify-center min-h-[400px]">
+//         <div className="text-center">
+//           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
+//           <p className="text-gray-600">Loading dashboard...</p>
+//         </div>
+//       </div>
+//     )
+//   }
+
+//   if (isStudent) {
+//     const studentAttendance = studentAttendanceDataById || studentAttendanceData || null
+
+//     const stats = studentAttendance?.stats || {
+//       attendancePercentage: 0,
+//       presentDays: 0,
+//       totalDays: 0,
+//     }
+
+//     const records = Array.isArray(studentAttendance?.records) ? studentAttendance.records : []
+//     const todayKey = getLocalYMD(new Date())
+
+//     // Treat "present" and "late" as present for today visibility, but show status explicitly
+//     const todayRecord = records.find((r: any) => r?.date === todayKey)
+//     const todayStatus = todayRecord?.status || "not-marked"
+
+//     const attendanceData = {
+//       present: records.filter((r: any) => r.status === "present"),
+//       absent: records.filter((r: any) => r.status === "absent"),
+//       late: records.filter((r: any) => r.status === "late"),
+//       leave: records.filter((r: any) => r.status === "leave"),
+//     }
+
+//     const statusChip =
+//       todayStatus === "present"
+//         ? "bg-green-100 text-green-800 border border-green-200"
+//         : todayStatus === "late"
+//           ? "bg-amber-100 text-amber-800 border border-amber-200"
+//           : todayStatus === "absent"
+//             ? "bg-red-100 text-red-800 border border-red-200"
+//             : todayStatus === "leave"
+//               ? "bg-blue-100 text-blue-800 border border-blue-200"
+//               : "bg-gray-100 text-gray-800 border border-gray-200"
+
+//     return (
+//       <div className="space-y-6">
+//         {user.institutionName && (
+//           <div className="inline-flex items-center gap-2 text-xs font-medium text-teal-700 bg-teal-50 border border-teal-200 px-2 py-1 rounded">
+//             {user.institutionName}
+//           </div>
+//         )}
+//         <header className="space-y-1">
+//           <h1 className="text-balance text-3xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
+//             Welcome back, {user.name}!
+//           </h1>
+//           <p className="text-sm text-gray-600">Student Dashboard - View your attendance and quick actions.</p>
+//         </header>
+
+//         <LiveTimeDisplay />
+
+//         <Card className="shadow-lg">
+//           <CardHeader className="flex flex-row items-center justify-between">
+//             <CardTitle className="text-gray-800">Today's Attendance</CardTitle>
+//             <Button
+//               variant="outline"
+//               size="sm"
+//               onClick={() => mutateStudentAttendance()}
+//               className="border-teal-200 text-teal-700 hover:bg-teal-50"
+//             >
+//               Refresh
+//             </Button>
+//           </CardHeader>
+//           <CardContent className="flex items-center justify-between gap-4">
+//             <div className="space-y-1">
+//               <div className={`px-3 py-1 rounded-full text-xs font-semibold inline-block ${statusChip}`}>
+//                 {todayStatus === "not-marked"
+//                   ? "Not Marked"
+//                   : todayStatus.charAt(0).toUpperCase() + todayStatus.slice(1)}
+//               </div>
+//               <div className="text-sm text-gray-600">
+//                 {todayStatus === "present" || todayStatus === "late"
+//                   ? `In: ${todayRecord?.inTime ?? "-"}${todayRecord?.outTime ? ` • Out: ${todayRecord.outTime}` : ""}`
+//                   : todayStatus === "leave"
+//                     ? todayRecord?.leaveType
+//                       ? `Leave: ${todayRecord.leaveType}`
+//                       : "On Leave"
+//                     : todayStatus === "absent"
+//                       ? "Absent today"
+//                       : "Attendance not marked yet"}
+//               </div>
+//             </div>
+//             <div className="text-right">
+//               <div className="text-xs text-gray-500">Overall Attendance</div>
+//               <div className="text-2xl font-bold text-gray-800">
+//                 {Math.round((stats.attendancePercentage || 0) * 100) / 100}%
+//               </div>
+//               <div className="text-xs text-gray-500">
+//                 {stats.presentDays}/{stats.totalDays} days
+//               </div>
+//             </div>
+//           </CardContent>
+//         </Card>
+
+//         {/* Existing StudentDashboardWidgets and AttendanceCalendar */}
+//         {computedStudentId ? (
+//           <StudentDashboardWidgets studentId={computedStudentId} />
+//         ) : (
+//           <div className="text-sm text-muted-foreground">
+//             Resolving your student profile… Please wait or re-login if this persists.
+//           </div>
+//         )}
+
+//         <AttendanceCalendar attendanceData={attendanceData} />
+
+//         {/* Existing Recent Attendance card */}
+//         <Card className="shadow-lg">
+//           <CardHeader>
+//             <CardTitle className="text-gray-800">Recent Attendance</CardTitle>
+//           </CardHeader>
+//           <CardContent>
+//             {records.slice(0, 5).map((record: any) => (
+//               <div
+//                 key={record.id}
+//                 className="flex justify-between items-center py-3 border-b last:border-b-0 hover:bg-gray-50 rounded-lg px-2 transition-colors duration-200"
+//               >
+//                 <span className="text-sm text-gray-700 font-medium">
+//                   {new Date(record.date).toLocaleDateString("en-US", {
+//                     weekday: "short",
+//                     month: "short",
+//                     day: "numeric",
+//                   })}
+//                 </span>
+//                 <span
+//                   className={`px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
+//                     record.status === "present"
+//                       ? "bg-green-100 text-green-800 border border-green-200"
+//                       : record.status === "absent"
+//                         ? "bg-red-100 text-red-800 border border-red-200"
+//                         : record.status === "late"
+//                           ? "bg-amber-100 text-amber-800 border border-amber-200"
+//                           : "bg-orange-100 text-orange-800 border border-orange-200"
+//                   }`}
+//                 >
+//                   {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+//                 </span>
+//               </div>
+//             )) || <p className="text-sm text-gray-500 text-center py-8">No attendance records found</p>}
+//           </CardContent>
+//         </Card>
+//       </div>
+//     )
+//   }
+
+//   if (!summary) {
+//     return (
+//       <div className="flex items-center justify-center min-h-[400px]">
+//         <div className="text-center">
+//           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
+//           <p className="text-gray-600">Loading dashboard...</p>
+//         </div>
+//       </div>
+//     )
+//   }
+
+//   return (
+//     <div className="space-y-6">
+//       {user.institutionName && (
+//         <div className="inline-flex items-center gap-2 text-xs font-medium text-teal-700 bg-teal-50 border border-teal-200 px-2 py-1 rounded">
+//           {user.institutionName}
+//         </div>
+//       )}
+//       <header className="space-y-1">
+//         <h1 className="text-balance text-3xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
+//           Welcome back, {user.name}!
+//         </h1>
+//         <p className="text-sm text-gray-600">
+//           {user.role} Dashboard - Real-time overview by department, role, shift, and trends.
+//         </p>
+//       </header>
+
+//       <LiveTimeDisplay />
+
+//       {hasMinimumRole("Manager") && (
+//         <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+//           <Link href="/staff">
+//             <Button
+//               variant="outline"
+//               className="h-24 w-full flex-col space-y-2 hover:bg-teal-50 hover:border-teal-300 bg-gradient-to-br from-white to-teal-50 shadow-md hover:shadow-lg transition-all duration-200 border-teal-200"
+//             >
+//               <div className="p-2 bg-teal-100 rounded-lg">
+//                 <Users className="h-6 w-6 text-teal-600" />
+//               </div>
+//               <span className="text-sm font-semibold text-teal-700">Manage Staff</span>
+//             </Button>
+//           </Link>
+
+//           {hasMinimumRole("Manager") && (
+//             <Link href="/students">
+//               <Button
+//                 variant="outline"
+//                 className="h-24 w-full flex-col space-y-2 hover:bg-blue-50 hover:border-blue-300 bg-gradient-to-br from-white to-blue-50 shadow-md hover:shadow-lg transition-all duration-200 border-blue-200"
+//               >
+//                 <div className="p-2 bg-blue-100 rounded-lg">
+//                   <UserCheck className="h-6 w-6 text-blue-600" />
+//                 </div>
+//                 <span className="text-sm font-semibold text-blue-700">Manage Students</span>
+//               </Button>
+//             </Link>
+//           )}
+
+//           <Link href="/attendance">
+//             <Button
+//               variant="outline"
+//               className="h-24 w-full flex-col space-y-2 hover:bg-green-50 hover:border-green-300 bg-gradient-to-br from-white to-green-50 shadow-md hover:shadow-lg transition-all duration-200 border-green-200"
+//             >
+//               <div className="p-2 bg-green-100 rounded-lg">
+//                 <Calendar className="h-6 w-6 text-green-600" />
+//               </div>
+//               <span className="text-sm font-semibold text-green-700">Attendance</span>
+//             </Button>
+//           </Link>
+
+//           <Link href="/leave-approval">
+//             <Button
+//               variant="outline"
+//               className="h-24 w-full flex-col space-y-2 hover:bg-orange-50 hover:border-orange-300 bg-gradient-to-br from-white to-orange-50 shadow-md hover:shadow-lg transition-all duration-200 border-orange-200 relative"
+//             >
+//               <div className="p-2 bg-orange-100 rounded-lg">
+//                 <CheckCircle className="h-6 w-6 text-orange-600" />
+//               </div>
+//               <span className="text-sm font-semibold text-orange-700">Leave Approval</span>
+//               {leaveStats.pending > 0 && (
+//                 <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
+//                   {leaveStats.pending}
+//                 </div>
+//               )}
+//             </Button>
+//           </Link>
+
+//           {user.role === "Admin" && (
+//             <Link href="/reports">
+//               <Button
+//                 variant="outline"
+//                 className="h-24 w-full flex-col space-y-2 hover:bg-purple-50 hover:border-purple-300 bg-gradient-to-br from-white to-purple-50 shadow-md hover:shadow-lg transition-all duration-200 border-purple-200"
+//               >
+//                 <div className="p-2 bg-purple-100 rounded-lg">
+//                   <FileText className="h-6 w-6 text-purple-600" />
+//                 </div>
+//                 <span className="text-sm font-semibold text-purple-700">Reports</span>
+//               </Button>
+//             </Link>
+//           )}
+//         </div>
+//       )}
+
+//       {!hasMinimumRole("Manager") && !isStudent && (
+//         <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+//           <Link href="/faceid">
+//             <Button
+//               variant="outline"
+//               className="h-24 w-full flex-col space-y-2 hover:bg-green-50 hover:border-green-300 bg-gradient-to-br from-white to-green-50 shadow-md hover:shadow-lg transition-all duration-200 border-green-200"
+//             >
+//               <div className="p-2 bg-green-100 rounded-lg">
+//                 <UserCheck className="h-4 w-4 text-green-600" />
+//               </div>
+//               <span className="text-sm font-semibold text-green-700">Mark Attendance</span>
+//             </Button>
+//           </Link>
+
+//           <Link href="/student-attendance">
+//             <Button
+//               variant="outline"
+//               className="h-24 w-full flex-col space-y-2 hover:bg-blue-50 hover:border-blue-300 bg-gradient-to-br from-white to-blue-50 shadow-md hover:shadow-lg transition-all duration-200 border-blue-200"
+//             >
+//               <div className="p-2 bg-blue-100 rounded-lg">
+//                 <Calendar className="h-4 w-4 text-blue-600" />
+//               </div>
+//               <span className="text-sm font-semibold text-blue-700">My Attendance</span>
+//             </Button>
+//           </Link>
+
+//           <Link href="/leave-requests">
+//             <Button
+//               variant="outline"
+//               className="h-24 w-full flex-col space-y-2 hover:bg-orange-50 hover:border-orange-300 bg-gradient-to-br from-white to-orange-50 shadow-md hover:shadow-lg transition-all duration-200 border-orange-200"
+//             >
+//               <div className="p-2 bg-orange-100 rounded-lg">
+//                 <ClipboardList className="h-4 w-4 text-orange-600" />
+//               </div>
+//               <span className="text-sm font-semibold text-orange-700">Request Leave</span>
+//               {leaveStats.myRequests > 0 && (
+//                 <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
+//                   {leaveStats.myRequests}
+//                 </span>
+//               )}
+//             </Button>
+//           </Link>
+//         </div>
+//       )}
+
+//       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+//         <Card className="bg-gradient-to-br from-teal-50 to-cyan-100 border-teal-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+//           <CardHeader>
+//             <CardTitle className="text-teal-700 flex items-center gap-2">
+//               <div className="p-1 bg-teal-200 rounded-lg">
+//                 <UserCheck className="h-4 w-4" />
+//               </div>
+//               Today Present
+//             </CardTitle>
+//           </CardHeader>
+//           <CardContent>
+//             <div className="text-4xl font-bold text-teal-700">{summary.todayPresent}</div>
+//           </CardContent>
+//         </Card>
+//         <Card className="bg-gradient-to-br from-amber-50 to-orange-100 border-amber-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+//           <CardHeader>
+//             <CardTitle className="text-amber-700 flex items-center gap-2">
+//               <div className="p-1 bg-amber-200 rounded-lg">
+//                 <Users className="h-4 w-4" />
+//               </div>
+//               Today Absent
+//             </CardTitle>
+//           </CardHeader>
+//           <CardContent>
+//             <div className="text-4xl font-bold text-amber-700">{summary.todayAbsent}</div>
+//           </CardContent>
+//         </Card>
+//         <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+//           <CardHeader>
+//             <CardTitle className="text-blue-700 flex items-center gap-2">
+//               <div className="p-1 bg-blue-200 rounded-lg">
+//                 <Calendar className="h-4 w-4" />
+//               </div>
+//               On Leave Today
+//             </CardTitle>
+//           </CardHeader>
+//           <CardContent>
+//             <div className="text-4xl font-bold text-blue-700">{summary.todayLeave || 0}</div>
+//           </CardContent>
+//         </Card>
+//       </div>
+
+//       {hasMinimumRole("Manager") && (
+//         <>
+//           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+//             <BarChartCard title="By Department (Today)" data={summary.byDepartment} />
+//             <BarChartCard title="By Role (Today)" data={summary.byRole} />
+//           </div>
+
+//           <LineChartCard title="Last 7 Days" data={summary.last7Days} />
+
+//           <BarChartCard title="By Shift (Today)" data={summary.byShift} />
+//         </>
+//       )}
+//     </div>
+//   )
+// }
+
+
+
+
+"use client"
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import BarChartCard from "@/components/dashboard/bar-chart-card"
+import LineChartCard from "@/components/dashboard/line-chart-card"
+import { useEffect, useState } from "react"
+import { getStoredUser, hasMinimumRole, type User } from "@/lib/auth"
+import { Button } from "@/components/ui/button"
+import { Users, UserCheck, Calendar, FileText, ClipboardList, CheckCircle } from "lucide-react"
+import Link from "next/link"
+import LiveTimeDisplay from "@/components/live-time-display"
+import AttendanceCalendar from "@/components/attendance-calendar"
+// import StudentDashboardWidgets from "@/components/student-dashboard-widgets" // Import for student stats
+import useSWR from "swr" // Added SWR import
+
+type Summary = {
+  todayPresent: number
+  todayAbsent: number
+  todayLeave: number // Added todayLeave field
+  byDepartment: { name: string; present: number; absent: number }[]
+  byRole: { name: string; present: number; absent: number }[]
+  byShift: { name: string; present: number; absent: number }[]
+  last7Days: { date: string; present: number; absent: number }[]
+  totalPeople: number
+}
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json())
+
+export default function DashboardPage() {
+  const [summary, setSummary] = useState<Summary | null>(null)
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [leaveStats, setLeaveStats] = useState({ pending: 0, myRequests: 0 })
+  const [resolvedStudentId, setResolvedStudentId] = useState<string | null>(null)
+  const {
+    data: personDetails,
+    error: personError,
+    isLoading: personLoading,
+    mutate: mutatePersonDetails,
+  } = useSWR(
+    resolvedStudentId ? `/api/person-details?personId=${resolvedStudentId}&personType=student` : null,
+    fetcher,
+    { revalidateOnFocus: true },
+  )
+
+  const quickStudentId = (user as any)?.id || (user as any)?._id?.toString?.()
+  const computedStudentId = resolvedStudentId || quickStudentId
+
+  const roleNormalized = user?.role ? String(user.role).trim().toLowerCase() : ""
+  const isStudent = roleNormalized === "student"
+
+  const getLocalYMD = (d: Date) => {
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, "0")
+    const day = String(d.getDate()).padStart(2, "0")
+    return `${y}-${m}-${day}`
+  }
+
+  useEffect(() => {
+    const storedUser = getStoredUser()
+    setUser(storedUser)
+
+    const initialId = (storedUser as any)?.id || (storedUser as any)?._id?.toString?.() || null
+    if (initialId) {
+      setResolvedStudentId(initialId)
+    }
+
+    const tryResolveStudentId = async () => {
+      try {
+        const roleNorm = storedUser?.role ? String(storedUser.role).trim().toLowerCase() : ""
+        if (roleNorm !== "student") return
+        if (initialId) return
+
+        const inst = storedUser?.role !== "SuperAdmin" ? storedUser?.institutionName : undefined
+        const url = inst ? `/api/students?institutionName=${encodeURIComponent(inst)}` : "/api/students"
+        const res = await fetch(url, { cache: "no-store" })
+        if (!res.ok) return
+        const payload = await res.json()
+        const items: any[] = Array.isArray(payload?.items) ? payload.items : []
+
+        const found = items.find(
+          (s) =>
+            (storedUser?.email && s?.email === storedUser.email) || (storedUser as any)?.rollNumber === s?.rollNumber,
+        )
+        if (found?.id) {
+          setResolvedStudentId(found.id)
+        }
+      } catch (e) {
+        console.error("[v0] Failed to resolve studentId:", e)
+      }
+    }
+
+    tryResolveStudentId()
+
+    const fetchSummary = async () => {
+      try {
+        const inst = storedUser?.role !== "SuperAdmin" ? storedUser?.institutionName : undefined
+        const url = inst ? `/api/reports/summary?institutionName=${encodeURIComponent(inst)}` : "/api/reports/summary"
+        const res = await fetch(url, { cache: "no-store" })
+        if (res.ok) {
+          const data = await res.json()
+          setSummary(data)
+        }
+      } catch (error) {
+        console.error("Failed to fetch summary:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    const fetchLeaveStats = async () => {
+      if (!storedUser) return
+
+      try {
+        const storedId = (storedUser as any)?.id || (storedUser as any)?._id?.toString?.()
+
+        if (!storedId) {
+          setLeaveStats({ pending: 0, myRequests: 0 })
+          return
+        }
+
+        const myRequestsRes = await fetch(`/api/leave-requests?personId=${storedId}`)
+        if (myRequestsRes.ok) {
+          const myData = await myRequestsRes.json()
+          const myRequestsCount = myData.leaveRequests?.length || 0
+
+          let pendingCount = 0
+          if (hasMinimumRole("Manager")) {
+            const inst = storedUser?.role !== "SuperAdmin" ? storedUser?.institutionName : undefined
+            const pUrl = `/api/leave-requests?status=pending${inst ? `&institutionName=${encodeURIComponent(inst)}` : ""}`
+            const pendingRes = await fetch(pUrl)
+            if (pendingRes.ok) {
+              const pendingData = await pendingRes.json()
+              pendingCount = pendingData.leaveRequests?.length || 0
+            }
+          }
+
+          setLeaveStats({ pending: pendingCount, myRequests: myRequestsCount })
+        }
+      } catch (error) {
+        console.error("Failed to fetch leave stats:", error)
+      }
+    }
+
+    fetchSummary()
+    fetchLeaveStats()
+  }, [])
+
+  if (loading || !user) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (isStudent) {
+    if (!computedStudentId) {
+      return (
+        <div className="flex items-center justify-center min-h-[300px]">
+          <p className="text-sm text-gray-600">Resolving your student profile… Please re-login if this persists.</p>
+        </div>
+      )
+    }
+
+    if (personLoading) {
+      return (
+        <div className="flex items-center justify-center min-h-[300px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading your attendance…</p>
+          </div>
+        </div>
+      )
+    }
+
+    if (personError || !personDetails) {
+      return (
+        <div className="flex items-center justify-center min-h-[300px]">
+          <p className="text-sm text-red-600">Failed to load your details. Please try again.</p>
+        </div>
+      )
+    }
+
+    const att = personDetails.attendance || { present: [], absent: [], late: [], leave: [] }
+    const present = Array.isArray(att.present) ? att.present : []
+    const absent = Array.isArray(att.absent) ? att.absent : []
+    const late = Array.isArray(att.late) ? att.late : []
+    const leave = Array.isArray(att.leave) ? att.leave : []
+
+    const todayKey = getLocalYMD(new Date())
+    const todayPresent = present.find((r: any) => r?.date === todayKey)
+    const todayLate = late.find((r: any) => r?.date === todayKey)
+    const todayAbsent = absent.find((r: any) => r?.date === todayKey)
+    const todayLeave = leave.find((r: any) => r?.date === todayKey)
+
+    const todayStatus = todayPresent
+      ? "present"
+      : todayLate
+        ? "late"
+        : todayLeave
+          ? "leave"
+          : todayAbsent
+            ? "absent"
+            : "not-marked"
+
+    const statusChip =
+      todayStatus === "present"
+        ? "bg-green-100 text-green-800 border border-green-200"
+        : todayStatus === "late"
+          ? "bg-amber-100 text-amber-800 border border-amber-200"
+          : todayStatus === "absent"
+            ? "bg-red-100 text-red-800 border border-red-200"
+            : todayStatus === "leave"
+              ? "bg-blue-100 text-blue-800 border border-blue-200"
+              : "bg-gray-100 text-gray-800 border border-gray-200"
+
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <header className="space-y-1">
+          <h1 className="text-balance text-3xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
+            Welcome back, {user.name}!
+          </h1>
+          <p className="text-sm text-gray-600">Student Home - Your attendance overview.</p>
+        </header>
+
+        {/* Today card */}
+        <Card className="shadow-lg">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-gray-800">Today's Attendance</CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => mutatePersonDetails()}
+              className="border-teal-200 text-teal-700 hover:bg-teal-50"
+            >
+              Refresh
+            </Button>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className={`px-3 py-1 rounded-full text-xs font-semibold inline-block ${statusChip}`}>
+                {todayStatus === "not-marked"
+                  ? "Not Marked"
+                  : todayStatus.charAt(0).toUpperCase() + todayStatus.slice(1)}
+              </div>
+              <div className="text-sm text-gray-600">
+                {todayStatus === "present" || todayStatus === "late"
+                  ? `In: ${
+                      (todayPresent || todayLate)?.timestamp
+                        ? new Date((todayPresent || todayLate).timestamp).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "-"
+                    }`
+                  : todayStatus === "leave"
+                    ? "On Leave"
+                    : todayStatus === "absent"
+                      ? "Absent today"
+                      : "Attendance not marked yet"}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Summary tiles from person-details */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="border-0 bg-green-50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-green-700">Present Days</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-green-700">{present.length}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 bg-rose-50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-red-700">Absent Days</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-red-700">{absent.length}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 bg-amber-50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-amber-700">Late Days</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-amber-700">{late.length}</div>
+            </CardContent>
+          </Card>
+
+          {Array.isArray(leave) && (
+            <Card className="border-0 bg-blue-50">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-blue-700">Leave Days</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-blue-700">{leave.length}</div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Calendar driven purely by person-details data */}
+        <AttendanceCalendar attendanceData={att} />
+
+        {/* Recent history, simplified */}
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-gray-800">Recent Attendance</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <div className="text-xs font-semibold text-green-700">Present</div>
+              {present.length > 0 ? (
+                present.slice(0, 10).map((r: any, i: number) => (
+                  <div key={`p-${i}`} className="flex justify-between items-center p-2 bg-white rounded-lg shadow-sm">
+                    <span className="text-sm font-medium text-gray-700">{new Date(r.date).toLocaleDateString()}</span>
+                    <span className="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800 border border-green-200">
+                      {(r.timestamp &&
+                        new Date(r.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })) ||
+                        "In"}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500 text-sm text-center py-4">No present days</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <div className="text-xs font-semibold text-red-700">Absent</div>
+              {absent.length > 0 ? (
+                absent.slice(0, 10).map((r: any, i: number) => (
+                  <div key={`a-${i}`} className="flex justify-between items-center p-2 bg-white rounded-lg shadow-sm">
+                    <span className="text-sm font-medium text-gray-700">{new Date(r.date).toLocaleDateString()}</span>
+                    <span className="px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-800 border border-red-200">
+                      Absent
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500 text-sm text-center py-4">No absent days</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <div className="text-xs font-semibold text-amber-700">Late</div>
+              {late.length > 0 ? (
+                late.slice(0, 10).map((r: any, i: number) => (
+                  <div key={`l-${i}`} className="flex justify-between items-center p-2 bg-white rounded-lg shadow-sm">
+                    <span className="text-sm font-medium text-gray-700">{new Date(r.date).toLocaleDateString()}</span>
+                    <span className="px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-800 border border-amber-200">
+                      Late
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500 text-sm text-center py-4">No late days</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!summary) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {user.institutionName && (
+        <div className="inline-flex items-center gap-2 text-xs font-medium text-teal-700 bg-teal-50 border border-teal-200 px-2 py-1 rounded">
+          {user.institutionName}
+        </div>
+      )}
+      <header className="space-y-1">
+        <h1 className="text-balance text-3xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
+          Welcome back, {user.name}!
+        </h1>
+        <p className="text-sm text-gray-600">
+          {user.role} Dashboard - Real-time overview by department, role, shift, and trends.
+        </p>
+      </header>
+
+      <LiveTimeDisplay />
+
+      {hasMinimumRole("Manager") && (
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+          <Link href="/staff">
+            <Button
+              variant="outline"
+              className="h-24 w-full flex-col space-y-2 hover:bg-teal-50 hover:border-teal-300 bg-gradient-to-br from-white to-teal-50 shadow-md hover:shadow-lg transition-all duration-200 border-teal-200"
+            >
+              <div className="p-2 bg-teal-100 rounded-lg">
+                <Users className="h-6 w-6 text-teal-600" />
+              </div>
+              <span className="text-sm font-semibold text-teal-700">Manage Staff</span>
+            </Button>
+          </Link>
+
+          {hasMinimumRole("Manager") && (
+            <Link href="/students">
+              <Button
+                variant="outline"
+                className="h-24 w-full flex-col space-y-2 hover:bg-blue-50 hover:border-blue-300 bg-gradient-to-br from-white to-blue-50 shadow-md hover:shadow-lg transition-all duration-200 border-blue-200"
+              >
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <UserCheck className="h-6 w-6 text-blue-600" />
+                </div>
+                <span className="text-sm font-semibold text-blue-700">Manage Students</span>
+              </Button>
+            </Link>
+          )}
+
+          <Link href="/attendance">
+            <Button
+              variant="outline"
+              className="h-24 w-full flex-col space-y-2 hover:bg-green-50 hover:border-green-300 bg-gradient-to-br from-white to-green-50 shadow-md hover:shadow-lg transition-all duration-200 border-green-200"
+            >
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Calendar className="h-6 w-6 text-green-600" />
+              </div>
+              <span className="text-sm font-semibold text-green-700">Attendance</span>
+            </Button>
+          </Link>
+
+          <Link href="/leave-approval">
+            <Button
+              variant="outline"
+              className="h-24 w-full flex-col space-y-2 hover:bg-orange-50 hover:border-orange-300 bg-gradient-to-br from-white to-orange-50 shadow-md hover:shadow-lg transition-all duration-200 border-orange-200 relative"
+            >
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <CheckCircle className="h-6 w-6 text-orange-600" />
+              </div>
+              <span className="text-sm font-semibold text-orange-700">Leave Approval</span>
+              {leaveStats.pending > 0 && (
+                <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
+                  {leaveStats.pending}
+                </div>
+              )}
+            </Button>
+          </Link>
+
+          {user.role === "Admin" && (
+            <Link href="/reports">
+              <Button
+                variant="outline"
+                className="h-24 w-full flex-col space-y-2 hover:bg-purple-50 hover:border-purple-300 bg-gradient-to-br from-white to-purple-50 shadow-md hover:shadow-lg transition-all duration-200 border-purple-200"
+              >
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <FileText className="h-4 w-4 text-purple-600" />
+                </div>
+                <span className="text-sm font-semibold text-purple-700">Reports</span>
+              </Button>
+            </Link>
+          )}
+        </div>
+      )}
+
+      {!hasMinimumRole("Manager") && !isStudent && (
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+          <Link href="/faceid">
+            <Button
+              variant="outline"
+              className="h-24 w-full flex-col space-y-2 hover:bg-green-50 hover:border-green-300 bg-gradient-to-br from-white to-green-50 shadow-md hover:shadow-lg transition-all duration-200 border-green-200"
+            >
+              <div className="p-2 bg-green-100 rounded-lg">
+                <UserCheck className="h-4 w-4 text-green-600" />
+              </div>
+              <span className="text-sm font-semibold text-green-700">Mark Attendance</span>
+            </Button>
+          </Link>
+
+          <Link href="/student-attendance">
+            <Button
+              variant="outline"
+              className="h-24 w-full flex-col space-y-2 hover:bg-blue-50 hover:border-blue-300 bg-gradient-to-br from-white to-blue-50 shadow-md hover:shadow-lg transition-all duration-200 border-blue-200"
+            >
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Calendar className="h-4 w-4 text-blue-600" />
+              </div>
+              <span className="text-sm font-semibold text-blue-700">My Attendance</span>
+            </Button>
+          </Link>
+
+          <Link href="/leave-requests">
+            <Button
+              variant="outline"
+              className="h-24 w-full flex-col space-y-2 hover:bg-orange-50 hover:border-orange-300 bg-gradient-to-br from-white to-orange-50 shadow-md hover:shadow-lg transition-all duration-200 border-orange-200"
+            >
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <ClipboardList className="h-4 w-4 text-orange-600" />
+              </div>
+              <span className="text-sm font-semibold text-orange-700">Request Leave</span>
+              {leaveStats.myRequests > 0 && (
+                <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
+                  {leaveStats.myRequests}
+                </span>
+              )}
+            </Button>
+          </Link>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <Card className="bg-gradient-to-br from-teal-50 to-cyan-100 border-teal-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <CardHeader>
+            <CardTitle className="text-teal-700 flex items-center gap-2">
+              <div className="p-1 bg-teal-200 rounded-lg">
+                <UserCheck className="h-4 w-4" />
+              </div>
+              Today Present
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-bold text-teal-700">{summary.todayPresent}</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-gradient-to-br from-amber-50 to-orange-100 border-amber-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <CardHeader>
+            <CardTitle className="text-amber-700 flex items-center gap-2">
+              <div className="p-1 bg-amber-200 rounded-lg">
+                <Users className="h-4 w-4" />
+              </div>
+              Today Absent
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-bold text-amber-700">{summary.todayAbsent}</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <CardHeader>
+            <CardTitle className="text-blue-700 flex items-center gap-2">
+              <div className="p-1 bg-blue-200 rounded-lg">
+                <Calendar className="h-4 w-4" />
+              </div>
+              On Leave Today
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-4xl font-bold text-blue-700">{summary.todayLeave || 0}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {hasMinimumRole("Manager") && (
+        <>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <BarChartCard title="By Department (Today)" data={summary.byDepartment} />
+            <BarChartCard title="By Role (Today)" data={summary.byRole} />
+          </div>
+
+          <LineChartCard title="Last 7 Days" data={summary.last7Days} />
+
+          <BarChartCard title="By Shift (Today)" data={summary.byShift} />
+        </>
+      )}
+    </div>
+  )
+}
