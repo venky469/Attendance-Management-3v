@@ -11,7 +11,7 @@
   --card-foreground: #374151;
   --popover: #ffffff;
   --popover-foreground: #374151;
-  --primary: #d97706;
+  --primary: #3b82f6;
   --primary-foreground: #ffffff;
   --secondary: #6366f1;
   --secondary-foreground: #ffffff;
@@ -23,8 +23,8 @@
   --destructive-foreground: #ffffff;
   --border: #e5e7eb;
   --input: #f8fafc;
-  --ring: #d97706;
-  --chart-1: #d97706;
+  --ring: #3b82f6;
+  --chart-1: #3b82f6;
   --chart-2: #6366f1;
   --chart-3: #dc2626;
   --chart-4: #374151;
@@ -37,7 +37,7 @@
   --sidebar-accent: #6366f1;
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #e5e7eb;
-  --sidebar-ring: #d97706;
+  --sidebar-ring: #3b82f6;
 
   /* Status colors */
   --status-present: #059669;
@@ -55,7 +55,7 @@
   --card-foreground: #f9fafb;
   --popover: #1f2937;
   --popover-foreground: #f9fafb;
-  --primary: #d97706;
+  --primary: #3b82f6;
   --primary-foreground: #ffffff;
   --secondary: #6366f1;
   --secondary-foreground: #ffffff;
@@ -67,8 +67,8 @@
   --destructive-foreground: #ffffff;
   --border: #374151;
   --input: #374151;
-  --ring: #d97706;
-  --chart-1: #d97706;
+  --ring: #3b82f6;
+  --chart-1: #3b82f6;
   --chart-2: #6366f1;
   --chart-3: #dc2626;
   --chart-4: #9ca3af;
@@ -80,7 +80,7 @@
   --sidebar-accent: #6366f1;
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #374151;
-  --sidebar-ring: #d97706;
+  --sidebar-ring: #3b82f6;
 
   /* Status colors for dark mode */
   --status-present: #10b981;
