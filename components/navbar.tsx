@@ -920,7 +920,7 @@ const allLinks = [
   { href: "/leave-approval", label: "Leave Approval", roles: ["SuperAdmin", "Admin", "Manager", "Teacher"] },
   { href: "/reports", label: "Reports", roles: ["SuperAdmin", "Admin", "Manager"] },
   
-  { href: "/settings", label: "Settings", roles: ["Admin"] },
+  { href: "/settings", label: "Settings", roles: ["Admin","SuperAdmin" ] },
   { href: "/super-admin/institutions", label: "Institutions", roles: ["SuperAdmin"] },
   { href: "/super-admin", label: "Super Admin", roles: ["SuperAdmin"] },
 ]

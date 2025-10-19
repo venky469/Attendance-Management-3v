@@ -1845,7 +1845,7 @@ export default function Page() {
       <div className="mx-auto max-w-6xl">
         <div className="text-center mb-8">
           {/* ... ClientRoot now renders the logo above this section ... */}
-          <h1 className="text-4xl font-bold text-foreground mb-2 text-balance">Genamplify Attendance</h1>
+          <h1 className="text-4xl font-bold text-foreground mb-2 text-balance">Face Attendance</h1>
           <p className="text-muted-foreground text-lg">Smart Biometric Attendance with Face Recognition Technology</p>
         </div>
 
@@ -2079,7 +2079,7 @@ export default function Page() {
               Contact Support
             </Link>
           </div>
-          <p className="text-muted-foreground text-sm mt-4">© 2025 Genamplify Services. All rights reserved.</p>
+          <p className="text-muted-foreground text-sm mt-4">© 2025 Face Attendence Services. All rights reserved.</p>
         </footer>
       </div>
     </div>
