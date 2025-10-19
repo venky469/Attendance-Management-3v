@@ -998,6 +998,61 @@ export function Navbar() {
     })
   }
 
+
+
+  useEffect(() => {
+  // Disable right-click
+  const handleContextMenu = (e: MouseEvent) => {
+    e.preventDefault();
+    // alert('Right-click is disabled for security reasons.');
+  };
+
+  // Disable inspect shortcuts
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (
+      (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+      e.key === 'F12'
+    ) {
+      e.preventDefault();
+      // alert('Developer tools are disabled for this application.');
+    }
+  };
+
+  // Detect if DevTools is open and close window
+  const detectDevTools = () => {
+    const threshold = 160;
+    const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+    const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+
+    if (widthThreshold || heightThreshold) {
+      // alert('Developer tools detected. The window will be closed for security reasons.');
+      window.close();
+
+      // As a fallback for browsers that block window.close()
+      document.body.innerHTML =
+        '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;font-size:20px;color:red;">⚠️ Developer tools detected. Please ***  Close Inspect Page  *** and reopen the page.</div>';
+    }
+  };
+
+  // Check every second
+  const interval = setInterval(detectDevTools, 1000);
+  
+
+  // Add listeners
+  document.addEventListener('contextmenu', handleContextMenu);
+  document.addEventListener('keydown', handleKeyDown);
+
+  // Cleanup
+  return () => {
+    document.removeEventListener('contextmenu', handleContextMenu);
+    document.removeEventListener('keydown', handleKeyDown);
+    clearInterval(interval);
+  };
+}, []);
+
+
+
+
   useEffect(() => {
     const storedUser = getStoredUser()
     setUser(storedUser)
