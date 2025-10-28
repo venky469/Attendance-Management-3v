@@ -454,6 +454,61 @@ export default function LoginPage() {
     return () => clearInterval(timer)
   }, [])
 
+
+
+ useEffect(() => {
+  // Disable right-click
+  const handleContextMenu = (e: MouseEvent) => {
+    e.preventDefault();
+    // alert('Right-click is disabled for security reasons.');
+  };
+
+  // Disable inspect shortcuts
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (
+      (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+      e.key === 'F12'
+    ) {
+      e.preventDefault();
+      // alert('Developer tools are disabled for this application.');
+    }
+  };
+
+  // Detect if DevTools is open and close window
+  const detectDevTools = () => {
+    const threshold = 160;
+    const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+    const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+
+    if (widthThreshold || heightThreshold) {
+      // alert('Developer tools detected. The window will be closed for security reasons.');
+      window.close();
+
+      // As a fallback for browsers that block window.close()
+      document.body.innerHTML =
+        '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;font-size:20px;color:red;">⚠️ Developer tools detected. Please ***  Close Inspect Page  *** and reopen the page.</div>';
+    }
+  };
+
+  // Check every second
+  const interval = setInterval(detectDevTools, 1000);
+  
+
+  // Add listeners
+  document.addEventListener('contextmenu', handleContextMenu);
+  document.addEventListener('keydown', handleKeyDown);
+
+  // Cleanup
+  return () => {
+    document.removeEventListener('contextmenu', handleContextMenu);
+    document.removeEventListener('keydown', handleKeyDown);
+    clearInterval(interval);
+  };
+}, []);
+
+
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
@@ -603,7 +658,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 px-4 pt-2 pb-8">
       <div className="mx-auto max-w-6xl">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2 text-balance">Genamplify Attendance</h1>
+          <h1 className="text-4xl font-bold text-foreground mb-2 text-balance">Face Attendance</h1>
           <p className="text-muted-foreground text-lg">Smart Biometric Attendance with Face Recognition Technology</p>
         </div>
 
@@ -900,7 +955,7 @@ export default function LoginPage() {
               Contact Support
             </Link>
           </div>
-          <p className="text-muted-foreground text-sm mt-4">© 2025 Genamplify Services. All rights reserved.</p>
+          <p className="text-muted-foreground text-sm mt-4">© 2025 Face Attendece Services. All rights reserved.</p>
         </footer>
       </div>
     </div>

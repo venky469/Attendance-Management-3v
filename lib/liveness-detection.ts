@@ -1,5 +1,3 @@
-import type * as faceapi from "face-api.js"
-
 export type LivenessChallenge = "blink" | "turn_left" | "turn_right" | "smile" | "nod"
 
 export interface LivenessResult {
@@ -9,276 +7,417 @@ export interface LivenessResult {
   challenge?: LivenessChallenge
 }
 
-// Eye Aspect Ratio for blink detection
-function calculateEAR(eye: faceapi.Point[]): number {
-  if (eye.length !== 6) return 0
-  const v1 = Math.hypot(eye[1].x - eye[5].x, eye[1].y - eye[5].y)
-  const v2 = Math.hypot(eye[2].x - eye[4].x, eye[2].y - eye[4].y)
-  const h = Math.hypot(eye[0].x - eye[3].x, eye[0].y - eye[3].y)
-  return (v1 + v2) / (2.0 * h)
+export interface HeadMovementResult {
+  isRealPerson: boolean
+  confidence: number
+  reason?: string
+  movementDetected: boolean
+  backgroundConsistent: boolean
 }
 
-export class LivenessDetector {
-  private earHistory: number[] = []
-  private facePositionHistory: { x: number; y: number; yaw: number }[] = []
-  private blinkDetected = false
-  private movementDetected = false
-  private frameCount = 0
-  private readonly EAR_THRESHOLD = 0.21
-  private readonly BLINK_FRAMES = 2
-  private readonly MOVEMENT_THRESHOLD = 15
-  private readonly YAW_THRESHOLD = 10
+export class HeadMovementDetector {
+  private positionHistory: Array<{
+    x: number
+    y: number
+    timestamp: number
+    backgroundHash: number
+  }> = []
+  private readonly HISTORY_SIZE = 15
+  private readonly MOVEMENT_THRESHOLD = 8 // pixels
+  private readonly BACKGROUND_CHANGE_THRESHOLD = 0.15
+  private readonly MIN_FRAMES = 10
 
   reset() {
-    this.earHistory = []
-    this.facePositionHistory = []
-    this.blinkDetected = false
-    this.movementDetected = false
-    this.frameCount = 0
+    this.positionHistory = []
   }
 
-  detectBlink(landmarks: faceapi.FaceLandmarks68): boolean {
-    const leftEye = landmarks.getLeftEye()
-    const rightEye = landmarks.getRightEye()
-    const leftEAR = calculateEAR(leftEye)
-    const rightEAR = calculateEAR(rightEye)
-    const avgEAR = (leftEAR + rightEAR) / 2.0
-    this.earHistory.push(avgEAR)
-    if (this.earHistory.length > 10) this.earHistory.shift()
-    if (this.earHistory.length >= 5) {
-      const recent = this.earHistory.slice(-5)
-      const hasClosedEyes = recent.some((ear) => ear < this.EAR_THRESHOLD)
-      const hasOpenEyes = recent.some((ear) => ear > this.EAR_THRESHOLD + 0.05)
-      if (hasClosedEyes && hasOpenEyes) {
-        this.blinkDetected = true
-        return true
+  // Simple hash function for background pixels
+  private hashBackground(
+    imageData: ImageData,
+    faceBox: { x: number; y: number; width: number; height: number },
+  ): number {
+    const data = imageData.data
+    const width = imageData.width
+    let hash = 0
+
+    // Sample background pixels around the face (not inside face box)
+    const samplePoints = 50
+    for (let i = 0; i < samplePoints; i++) {
+      // Sample from edges of image (background areas)
+      const x = Math.floor(Math.random() * width)
+      const y = Math.floor(Math.random() * imageData.height)
+
+      // Skip if inside face box
+      if (x >= faceBox.x && x <= faceBox.x + faceBox.width && y >= faceBox.y && y <= faceBox.y + faceBox.height) {
+        continue
+      }
+
+      const idx = (y * width + x) * 4
+      if (idx < data.length - 2) {
+        hash += data[idx] + data[idx + 1] + data[idx + 2]
       }
     }
-    return false
+
+    return hash / samplePoints
   }
 
-  detectHeadMovement(detection: faceapi.FaceDetection, landmarks: faceapi.FaceLandmarks68): boolean {
-    const box = detection.box
-    const nose = landmarks.getNose()
-    const centerX = box.x + box.width / 2
-    const centerY = box.y + box.height / 2
-    const noseTip = nose[3]
-    const noseOffset = noseTip.x - centerX
-    const yaw = (noseOffset / box.width) * 100
-    this.facePositionHistory.push({ x: centerX, y: centerY, yaw })
-    if (this.facePositionHistory.length > 10) this.facePositionHistory.shift()
-    if (this.facePositionHistory.length >= 5) {
-      const positions = this.facePositionHistory.slice(-5)
-      const xMovement = Math.max(...positions.map((p) => p.x)) - Math.min(...positions.map((p) => p.x))
-      const yawMovement = Math.max(...positions.map((p) => p.yaw)) - Math.min(...positions.map((p) => p.yaw))
-      if (xMovement > this.MOVEMENT_THRESHOLD || Math.abs(yawMovement) > this.YAW_THRESHOLD) {
-        this.movementDetected = true
-        return true
+  detectHeadMovement(
+    faceBox: { x: number; y: number; width: number; height: number },
+    imageData: ImageData,
+  ): HeadMovementResult {
+    const centerX = faceBox.x + faceBox.width / 2
+    const centerY = faceBox.y + faceBox.height / 2
+    const timestamp = Date.now()
+    const backgroundHash = this.hashBackground(imageData, faceBox)
+
+    this.positionHistory.push({
+      x: centerX,
+      y: centerY,
+      timestamp,
+      backgroundHash,
+    })
+
+    // Keep only recent history
+    if (this.positionHistory.length > this.HISTORY_SIZE) {
+      this.positionHistory.shift()
+    }
+
+    // Need minimum frames to analyze
+    if (this.positionHistory.length < this.MIN_FRAMES) {
+      return {
+        isRealPerson: false,
+        confidence: 0,
+        reason: "Collecting movement data...",
+        movementDetected: false,
+        backgroundConsistent: true,
       }
     }
-    return false
-  }
 
-  // Multi-frame consistency check
-  checkConsistency(descriptor: Float32Array | number[]): boolean {
-    this.frameCount++
-    return this.frameCount >= 3
-  }
+    // Analyze head movement
+    const positions = this.positionHistory.map((h) => ({ x: h.x, y: h.y }))
+    const xPositions = positions.map((p) => p.x)
+    const yPositions = positions.map((p) => p.y)
 
-  // Overall liveness check
-  checkLiveness(
-    detection: faceapi.FaceDetection,
-    landmarks: faceapi.FaceLandmarks68,
-    descriptor: Float32Array | number[],
-  ): LivenessResult {
-    const hasBlink = this.detectBlink(landmarks)
-    const hasMovement = this.detectHeadMovement(detection, landmarks)
-    const isConsistent = this.checkConsistency(descriptor)
+    const xRange = Math.max(...xPositions) - Math.min(...xPositions)
+    const yRange = Math.max(...yPositions) - Math.min(...yPositions)
+    const totalMovement = Math.sqrt(xRange * xRange + yRange * yRange)
 
+    // Check for natural micro-movements (real person always has small movements)
+    const hasNaturalMovement = totalMovement >= this.MOVEMENT_THRESHOLD
+
+    // Analyze background consistency
+    const backgroundHashes = this.positionHistory.map((h) => h.backgroundHash)
+    const avgBackground = backgroundHashes.reduce((a, b) => a + b, 0) / backgroundHashes.length
+    const backgroundVariance =
+      backgroundHashes.reduce((sum, hash) => {
+        return sum + Math.abs(hash - avgBackground)
+      }, 0) / backgroundHashes.length
+
+    // If background changes significantly when head moves, it's likely a photo/video
+    // Real person: background stays same, only face moves
+    // Photo/video: background moves with face
+    const backgroundChangeRatio = backgroundVariance / (avgBackground || 1)
+    const backgroundConsistent = backgroundChangeRatio < this.BACKGROUND_CHANGE_THRESHOLD
+
+    // Calculate confidence
     let confidence = 0
-    if (hasBlink) confidence += 0.4
-    if (hasMovement) confidence += 0.3
-    if (isConsistent) confidence += 1.0 // Full confidence if consistent frames
+    const reasons: string[] = []
 
-    const passed = confidence >= 0.6
-
-    if (!passed) {
-      let reason = "Liveness check failed: "
-      if (!hasBlink) reason += "No blink detected. "
-      if (!hasMovement) reason += "No head movement detected. "
-      if (!isConsistent) reason += "Insufficient frames. "
-      return { passed: false, confidence, reason }
+    if (hasNaturalMovement) {
+      confidence += 0.5
+    } else {
+      reasons.push("no head movement detected")
     }
 
-    return { passed: true, confidence }
-  }
+    if (backgroundConsistent) {
+      confidence += 0.5
+    } else {
+      reasons.push("background moving with face (photo/video detected)")
+    }
 
-  static getRandomChallenge(): LivenessChallenge {
-    const challenges: LivenessChallenge[] = ["blink", "turn_left", "turn_right", "smile", "nod"]
-    return challenges[Math.floor(Math.random() * challenges.length)]
-  }
+    const isRealPerson = confidence >= 0.7
 
-  static getChallengeText(challenge: LivenessChallenge): string {
-    switch (challenge) {
-      case "blink":
-        return "Please blink your eyes"
-      case "turn_left":
-        return "Please turn your head left"
-      case "turn_right":
-        return "Please turn your head right"
-      case "smile":
-        return "Please smile"
-      case "nod":
-        return "Please nod your head"
-      default:
-        return "Please look at the camera"
+    return {
+      isRealPerson,
+      confidence,
+      reason: isRealPerson ? undefined : `Spoof detected: ${reasons.join(", ")}`,
+      movementDetected: hasNaturalMovement,
+      backgroundConsistent,
     }
   }
 }
 
-// Detect if image is from a screen (photo/video spoof)
-export function detectScreenSpoof(imageData: ImageData): { isSpoof: boolean; confidence: number; reason?: string } {
-  const data = imageData.data
-  const width = imageData.width
-  const height = imageData.height
+// // Commented out all screen spoof detection code
+// // Eye Aspect Ratio for blink detection
+// function calculateEAR(eye: faceapi.Point[]): number {
+//   if (eye.length !== 6) return 0
+//   const v1 = Math.hypot(eye[1].x - eye[5].x, eye[1].y - eye[5].y)
+//   const v2 = Math.hypot(eye[2].x - eye[4].x, eye[2].y - eye[4].y)
+//   const h = Math.hypot(eye[0].x - eye[3].x, eye[0].y - eye[3].y)
+//   return (v1 + v2) / (2.0 * h)
+// }
 
-  let moirePatternScore = 0
-  const brightnessVariation = 0
-  let colorAnomalies = 0
-  let pixelPatternScore = 0
-  let edgeSharpnessScore = 0
-  let textureScore = 0
-  const flickerScore = 0
+// export class LivenessDetector {
+//   private earHistory: number[] = []
+//   private facePositionHistory: { x: number; y: number; yaw: number }[] = []
+//   private blinkDetected = false
+//   private movementDetected = false
+//   private frameCount = 0
+//   private readonly EAR_THRESHOLD = 0.21
+//   private readonly BLINK_FRAMES = 2
+//   private readonly MOVEMENT_THRESHOLD = 15
+//   private readonly YAW_THRESHOLD = 10
 
-  // Sample more pixels for better accuracy
-  const sampleSize = Math.min(data.length / 4, 20000)
-  const step = Math.floor(data.length / (sampleSize * 4))
+//   reset() {
+//     this.earHistory = []
+//     this.facePositionHistory = []
+//     this.blinkDetected = false
+//     this.movementDetected = false
+//     this.frameCount = 0
+//   }
 
-  const brightnessValues: number[] = []
-  const edgeStrengths: number[] = []
+//   detectBlink(landmarks: faceapi.FaceLandmarks68): boolean {
+//     const leftEye = landmarks.getLeftEye()
+//     const rightEye = landmarks.getRightEye()
+//     const leftEAR = calculateEAR(leftEye)
+//     const rightEAR = calculateEAR(rightEye)
+//     const avgEAR = (leftEAR + rightEAR) / 2.0
+//     this.earHistory.push(avgEAR)
+//     if (this.earHistory.length > 10) this.earHistory.shift()
+//     if (this.earHistory.length >= 5) {
+//       const recent = this.earHistory.slice(-5)
+//       const hasClosedEyes = recent.some((ear) => ear < this.EAR_THRESHOLD)
+//       const hasOpenEyes = recent.some((ear) => ear > this.EAR_THRESHOLD + 0.05)
+//       if (hasClosedEyes && hasOpenEyes) {
+//         this.blinkDetected = true
+//         return true
+//       }
+//     }
+//     return false
+//   }
 
-  // Analyze pixels
-  for (let i = 0; i < data.length - step * 4; i += step * 4) {
-    const r = data[i]
-    const g = data[i + 1]
-    const b = data[i + 2]
+//   detectHeadMovement(detection: faceapi.FaceDetection, landmarks: faceapi.FaceLandmarks68): boolean {
+//     const box = detection.box
+//     const nose = landmarks.getNose()
+//     const centerX = box.x + box.width / 2
+//     const centerY = box.y + box.height / 2
+//     const noseTip = nose[3]
+//     const noseOffset = noseTip.x - centerX
+//     const yaw = (noseOffset / box.width) * 100
+//     this.facePositionHistory.push({ x: centerX, y: centerY, yaw })
+//     if (this.facePositionHistory.length > 10) this.facePositionHistory.shift()
+//     if (this.facePositionHistory.length >= 5) {
+//       const positions = this.facePositionHistory.slice(-5)
+//       const xMovement = Math.max(...positions.map((p) => p.x)) - Math.min(...positions.map((p) => p.x))
+//       const yawMovement = Math.max(...positions.map((p) => p.yaw)) - Math.min(...positions.map((p) => p.yaw))
+//       if (xMovement > this.MOVEMENT_THRESHOLD || Math.abs(yawMovement) > this.YAW_THRESHOLD) {
+//         this.movementDetected = true
+//         return true
+//       }
+//     }
+//     return false
+//   }
 
-    const brightness = (r + g + b) / 3
-    brightnessValues.push(brightness)
+//   // Multi-frame consistency check
+//   checkConsistency(descriptor: Float32Array | number[]): boolean {
+//     this.frameCount++
+//     return this.frameCount >= 3
+//   }
 
-    // 1. Enhanced moire pattern detection (stricter)
-    const colorDiff = Math.abs(r - g) + Math.abs(g - b) + Math.abs(r - b)
-    if (colorDiff > 80) {
-      moirePatternScore++
-    }
+//   // Overall liveness check
+//   checkLiveness(
+//     detection: faceapi.FaceDetection,
+//     landmarks: faceapi.FaceLandmarks68,
+//     descriptor: Float32Array | number[],
+//   ): LivenessResult {
+//     const hasBlink = this.detectBlink(landmarks)
+//     const hasMovement = this.detectHeadMovement(detection, landmarks)
+//     const isConsistent = this.checkConsistency(descriptor)
 
-    // 2. Color anomaly detection (RGB imbalance common in screens)
-    if (Math.abs(r - g) > 40 || Math.abs(g - b) > 40 || Math.abs(r - b) > 40) {
-      colorAnomalies++
-    }
+//     let confidence = 0
+//     if (hasBlink) confidence += 0.4
+//     if (hasMovement) confidence += 0.3
+//     if (isConsistent) confidence += 1.0 // Full confidence if consistent frames
 
-    // 3. Pixel grid pattern detection (LCD/LED screens)
-    if (i >= step * 4 && i < data.length - step * 4) {
-      const prevBrightness = (data[i - step * 4] + data[i - step * 4 + 1] + data[i - step * 4 + 2]) / 3
-      const nextBrightness = (data[i + step * 4] + data[i + step * 4 + 1] + data[i + step * 4 + 2]) / 3
+//     const passed = confidence >= 0.6
 
-      // Check for regular patterns (screen pixels)
-      const diff = Math.abs(brightness - prevBrightness) + Math.abs(brightness - nextBrightness)
-      if (diff > 80) {
-        pixelPatternScore++
-      }
+//     if (!passed) {
+//       let reason = "Liveness check failed: "
+//       if (!hasBlink) reason += "No blink detected. "
+//       if (!hasMovement) reason += "No head movement detected. "
+//       if (!isConsistent) reason += "Insufficient frames. "
+//       return { passed: false, confidence, reason }
+//     }
 
-      // 4. Edge sharpness analysis (photos of screens have softer edges)
-      const edgeStrength = Math.abs(brightness - prevBrightness)
-      edgeStrengths.push(edgeStrength)
-      if (edgeStrength > 5 && edgeStrength < 30) {
-        edgeSharpnessScore++ // Soft edges indicate photo of screen
-      }
-    }
+//     return { passed: true, confidence }
+//   }
 
-    // 5. Texture uniformity (screens have more uniform texture)
-    const x = (i / 4) % width
-    const y = Math.floor(i / 4 / width)
-    if (x > 10 && x < width - 10 && y > 10 && y < height - 10) {
-      // Check local variance
-      const neighbors = [data[i - width * 4], data[i + width * 4], data[i - 4], data[i + 4]]
-      const avgNeighbor = neighbors.reduce((a, b) => a + b, 0) / neighbors.length
-      const variance = Math.abs(brightness - avgNeighbor)
-      if (variance < 5) {
-        textureScore++ // Too uniform = likely screen
-      }
-    }
-  }
+//   static getRandomChallenge(): LivenessChallenge {
+//     const challenges: LivenessChallenge[] = ["blink", "turn_left", "turn_right", "smile", "nod"]
+//     return challenges[Math.floor(Math.random() * challenges.length)]
+//   }
 
-  // 6. Brightness distribution analysis
-  const avgBrightness = brightnessValues.reduce((a, b) => a + b, 0) / brightnessValues.length
-  const brightnessStdDev = Math.sqrt(
-    brightnessValues.reduce((sum, val) => sum + Math.pow(val - avgBrightness, 2), 0) / brightnessValues.length,
-  )
+//   static getChallengeText(challenge: LivenessChallenge): string {
+//     switch (challenge) {
+//       case "blink":
+//         return "Please blink your eyes"
+//       case "turn_left":
+//         return "Please turn your head left"
+//       case "turn_right":
+//         return "Please turn your head right"
+//       case "smile":
+//         return "Please smile"
+//       case "nod":
+//         return "Please nod your head"
+//       default:
+//         return "Please look at the camera"
+//     }
+//   }
+// }
 
-  // 7. Edge sharpness distribution
-  const avgEdgeStrength = edgeStrengths.reduce((a, b) => a + b, 0) / edgeStrengths.length
+// // Detect if image is from a screen (photo/video spoof)
+// export function detectScreenSpoof(imageData: ImageData): { isSpoof: boolean; confidence: number; reason?: string } {
+//   const data = imageData.data
+//   const width = imageData.width
+//   const height = imageData.height
 
-  // Calculate ratios
-  const moireRatio = moirePatternScore / (sampleSize || 1)
-  const colorAnomalyRatio = colorAnomalies / (sampleSize || 1)
-  const pixelPatternRatio = pixelPatternScore / (sampleSize || 1)
-  const edgeSharpnessRatio = edgeSharpnessScore / (sampleSize || 1)
-  const textureRatio = textureScore / (sampleSize || 1)
+//   let moirePatternScore = 0
+//   const brightnessVariation = 0
+//   let colorAnomalies = 0
+//   let pixelPatternScore = 0
+//   let edgeSharpnessScore = 0
+//   let textureScore = 0
+//   const flickerScore = 0
 
-  // Scoring system (stricter thresholds)
-  let spoofScore = 0
-  const reasons: string[] = []
+//   // Sample more pixels for better accuracy
+//   const sampleSize = Math.min(data.length / 4, 20000)
+//   const step = Math.floor(data.length / (sampleSize * 4))
 
-  // Extreme brightness (screen glare or backlight)
-  if (avgBrightness > 230 || avgBrightness < 30) {
-    spoofScore += 0.25
-    reasons.push(avgBrightness > 230 ? "excessive screen brightness" : "insufficient lighting")
-  }
+//   const brightnessValues: number[] = []
+//   const edgeStrengths: number[] = []
 
-  // Low brightness variation (screens are more uniform)
-  if (brightnessStdDev < 20) {
-    spoofScore += 0.2
-    reasons.push("uniform brightness (screen characteristic)")
-  }
+//   // Analyze pixels
+//   for (let i = 0; i < data.length - step * 4; i += step * 4) {
+//     const r = data[i]
+//     const g = data[i + 1]
+//     const b = data[i + 2]
 
-  // Moire patterns (stricter threshold)
-  if (moireRatio > 0.12) {
-    spoofScore += 0.25
-    reasons.push("moire interference patterns")
-  }
+//     const brightness = (r + g + b) / 3
+//     brightnessValues.push(brightness)
 
-  // Color anomalies (RGB imbalance)
-  if (colorAnomalyRatio > 0.15) {
-    spoofScore += 0.2
-    reasons.push("color artifacts")
-  }
+//     // 1. Enhanced moire pattern detection (stricter)
+//     const colorDiff = Math.abs(r - g) + Math.abs(g - b) + Math.abs(r - b)
+//     if (colorDiff > 80) {
+//       moirePatternScore++
+//     }
 
-  // Pixel grid patterns (LCD/LED)
-  if (pixelPatternRatio > 0.2) {
-    spoofScore += 0.25
-    reasons.push("screen pixel grid detected")
-  }
+//     // 2. Color anomaly detection (RGB imbalance common in screens)
+//     if (Math.abs(r - g) > 40 || Math.abs(g - b) > 40 || Math.abs(r - b) > 40) {
+//       colorAnomalies++
+//     }
 
-  // Soft edges (photo of screen)
-  if (edgeSharpnessRatio > 0.3 || avgEdgeStrength < 15) {
-    spoofScore += 0.2
-    reasons.push("soft edges (photo characteristic)")
-  }
+//     // 3. Pixel grid pattern detection (LCD/LED screens)
+//     if (i >= step * 4 && i < data.length - step * 4) {
+//       const prevBrightness = (data[i - step * 4] + data[i - step * 4 + 1] + data[i - step * 4 + 2]) / 3
+//       const nextBrightness = (data[i + step * 4] + data[i + step * 4 + 1] + data[i + step * 4 + 2]) / 3
 
-  // Uniform texture (screen)
-  if (textureRatio > 0.4) {
-    spoofScore += 0.2
-    reasons.push("uniform texture (screen surface)")
-  }
+//       // Check for regular patterns (screen pixels)
+//       const diff = Math.abs(brightness - prevBrightness) + Math.abs(brightness - nextBrightness)
+//       if (diff > 80) {
+//         pixelPatternScore++
+//       }
 
-  // More strict: require higher score to flag as spoof
-  const isSpoof = spoofScore >= 0.6 // Increased from 0.5
-  const confidence = isSpoof ? Math.min(spoofScore, 1.0) : 1.0 - spoofScore
+//       // 4. Edge sharpness analysis (photos of screens have softer edges)
+//       const edgeStrength = Math.abs(brightness - prevBrightness)
+//       edgeStrengths.push(edgeStrength)
+//       if (edgeStrength > 5 && edgeStrength < 30) {
+//         edgeSharpnessScore++ // Soft edges indicate photo of screen
+//       }
+//     }
 
-  return {
-    isSpoof,
-    confidence,
-    reason: isSpoof ? `Screen spoof detected: ${reasons.join(", ")}` : undefined,
-  }
-}
+//     // 5. Texture uniformity (screens have more uniform texture)
+//     const x = (i / 4) % width
+//     const y = Math.floor(i / 4 / width)
+//     if (x > 10 && x < width - 10 && y > 10 && y < height - 10) {
+//       // Check local variance
+//       const neighbors = [data[i - width * 4], data[i + width * 4], data[i - 4], data[i + 4]]
+//       const avgNeighbor = neighbors.reduce((a, b) => a + b, 0) / neighbors.length
+//       const variance = Math.abs(brightness - avgNeighbor)
+//       if (variance < 5) {
+//         textureScore++ // Too uniform = likely screen
+//       }
+//     }
+//   }
+
+//   // 6. Brightness distribution analysis
+//   const avgBrightness = brightnessValues.reduce((a, b) => a + b, 0) / brightnessValues.length
+//   const brightnessStdDev = Math.sqrt(
+//     brightnessValues.reduce((sum, val) => sum + Math.pow(val - avgBrightness, 2), 0) / brightnessValues.length,
+//   )
+
+//   // 7. Edge sharpness distribution
+//   const avgEdgeStrength = edgeStrengths.reduce((a, b) => a + b, 0) / edgeStrengths.length
+
+//   // Calculate ratios
+//   const moireRatio = moirePatternScore / (sampleSize || 1)
+//   const colorAnomalyRatio = colorAnomalies / (sampleSize || 1)
+//   const pixelPatternRatio = pixelPatternScore / (sampleSize || 1)
+//   const edgeSharpnessRatio = edgeSharpnessScore / (sampleSize || 1)
+//   const textureRatio = textureScore / (sampleSize || 1)
+
+//   // Scoring system (stricter thresholds)
+//   let spoofScore = 0
+//   const reasons: string[] = []
+
+//   // Extreme brightness (screen glare or backlight)
+//   if (avgBrightness > 230 || avgBrightness < 30) {
+//     spoofScore += 0.25
+//     reasons.push(avgBrightness > 230 ? "excessive screen brightness" : "insufficient lighting")
+//   }
+
+//   // Low brightness variation (screens are more uniform)
+//   if (brightnessStdDev < 20) {
+//     spoofScore += 0.2
+//     reasons.push("uniform brightness (screen characteristic)")
+//   }
+
+//   // Moire patterns (stricter threshold)
+//   if (moireRatio > 0.12) {
+//     spoofScore += 0.25
+//     reasons.push("moire interference patterns")
+//   }
+
+//   // Color anomalies (RGB imbalance)
+//   if (colorAnomalyRatio > 0.15) {
+//     spoofScore += 0.2
+//     reasons.push("color artifacts")
+//   }
+
+//   // Pixel grid patterns (LCD/LED)
+//   if (pixelPatternRatio > 0.2) {
+//     spoofScore += 0.25
+//     reasons.push("screen pixel grid detected")
+//   }
+
+//   // Soft edges (photo of screen)
+//   if (edgeSharpnessRatio > 0.3 || avgEdgeStrength < 15) {
+//     spoofScore += 0.2
+//     reasons.push("soft edges (photo characteristic)")
+//   }
+
+//   // Uniform texture (screen)
+//   if (textureRatio > 0.4) {
+//     spoofScore += 0.2
+//     reasons.push("uniform texture (screen surface)")
+//   }
+
+//   // More strict: require higher score to flag as spoof
+//   const isSpoof = spoofScore >= 0.6 // Increased from 0.5
+//   const confidence = isSpoof ? Math.min(spoofScore, 1.0) : 1.0 - spoofScore
+
+//   return {
+//     isSpoof,
+//     confidence,
+//     reason: isSpoof ? `Screen spoof detected: ${reasons.join(", ")}` : undefined,
+//   }
+// }

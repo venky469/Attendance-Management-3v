@@ -1,5 +1,4 @@
 
-
 // import { createTransporter } from "./transporter"
 
 // export async function sendWelcomeEmail({
@@ -30,7 +29,7 @@
 //     <head>
 //       <meta charset="utf-8">
 //       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-//       <title>Welcome to Face </title>
+//       <title>Welcome to Face Attendece</title>
 //     </head>
 //     <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
 //       <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -41,14 +40,14 @@
 //             <div style="background: linear-gradient(135deg, #0ea5e9, #06b6d4); width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(14, 165, 233, 0.3);">
 //               <span style="color: white; font-size: 32px; font-weight: bold;">🎉</span>
 //             </div>
-//             <h1 style="color: #1e293b; margin: 0; font-size: 28px; font-weight: 700;">Welcome to Face !</h1>
+//             <h1 style="color: #1e293b; margin: 0; font-size: 28px; font-weight: 700;">Welcome to Face Attendece!</h1>
 //             <p style="color: #64748b; margin: 10px 0 0; font-size: 16px;">Your account has been successfully created</p>
 //           </div>
 
 //           <!-- Greeting -->
 //           <div style="margin-bottom: 30px;">
 //             <p style="color: #334155; font-size: 18px; margin: 0;">Hello <strong>${name}</strong>,</p>
-//             <p style="color: #64748b; font-size: 16px; margin: 10px 0 0; line-height: 1.6;">Welcome to Face ! Your ${type} account has been created successfully. Here are your login credentials:</p>
+//             <p style="color: #64748b; font-size: 16px; margin: 10px 0 0; line-height: 1.6;">Welcome to Face Attendece! Your ${type} account has been created successfully. Here are your login credentials:</p>
 //           </div>
 
 //           <!-- Account Details -->
@@ -96,20 +95,20 @@
 //           <!-- Next Steps -->
 //           <div style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 15px; padding: 20px; margin-bottom: 25px; border-left: 4px solid #3b82f6;">
 //             <h3 style="color: #1d4ed8; margin: 0 0 10px; font-size: 16px; font-weight: 600;">🚀 Next Steps</h3>
-//             <p style="color: #1e40af; margin: 0; font-size: 14px; line-height: 1.5;">Use your credentials to log in to the Face  system and start using the attendance management features.</p>
+//             <p style="color: #1e40af; margin: 0; font-size: 14px; line-height: 1.5;">Use your credentials to log in to the Face Attendece system and start using the attendance management features.</p>
 //           </div>
 
 //           <!-- Login Button -->
 //           <div style="text-align: center; margin-bottom: 25px;">
 //             <a href="https://faceattendv1.netlify.app/login" style="display: inline-block; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; text-decoration: none; padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); transition: all 0.3s ease;">
-//               🚀 Login to Face 
+//               🚀 Login to Face Attendece
 //             </a>
 //             <p style="color: #94a3b8; font-size: 13px; margin: 10px 0 0;">Click the button above to access your dashboard</p>
 //           </div>
 
 //           <!-- Footer -->
 //           <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-//             <p style="color: #64748b; font-size: 14px; margin: 0;">This is an automated message from Face </p>
+//             <p style="color: #64748b; font-size: 14px; margin: 0;">This is an automated message from Face Attendece</p>
 //             <p style="color: #94a3b8; font-size: 12px; margin: 5px 0 0;">Please do not reply to this email</p>
 //           </div>
 //         </div>
@@ -231,7 +230,7 @@
 //     <head>
 //       <meta charset="utf-8">
 //       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-//       <title>Account Updated - Face </title>
+//       <title>Account Updated - Face Attendece</title>
 //     </head>
 //     <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
 //       <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -343,14 +342,14 @@
 //           <!-- Login Button -->
 //           <div style="text-align: center; margin-bottom: 25px;">
 //             <a href="https://faceattendv1.netlify.app/login" style="display: inline-block; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; text-decoration: none; padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); transition: all 0.3s ease;">
-//               🚀 Login to Face 
+//               🚀 Login to Face Attendece
 //             </a>
 //             <p style="color: #94a3b8; font-size: 13px; margin: 10px 0 0;">Click the button above to access your dashboard</p>
 //           </div>
 
 //           <!-- Footer -->
 //           <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-//             <p style="color: #64748b; font-size: 14px; margin: 0;">This is an automated message from Face </p>
+//             <p style="color: #64748b; font-size: 14px; margin: 0;">This is an automated message from Face Attendece</p>
 //             <p style="color: #94a3b8; font-size: 12px; margin: 5px 0 0;">Please do not reply to this email</p>
 //           </div>
 //         </div>
@@ -419,7 +418,7 @@
 //     <head>
 //       <meta charset="utf-8">
 //       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-//       <title>Leave Request - Face </title>
+//       <title>Leave Request - Face Attendece</title>
 //     </head>
 //     <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
 //       <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -495,7 +494,7 @@
 //           <!-- Action Required -->
 //           <div style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 15px; padding: 20px; margin-bottom: 25px; border-left: 4px solid #3b82f6;">
 //             <h3 style="color: #1d4ed8; margin: 0 0 10px; font-size: 16px; font-weight: 600;">⚡ Action Required</h3>
-//             <p style="color: #1e40af; margin: 0; font-size: 14px; line-height: 1.5;">Please log in to the Face  system to review and approve or reject this leave request. The requester will be notified of your decision via email.</p>
+//             <p style="color: #1e40af; margin: 0; font-size: 14px; line-height: 1.5;">Please log in to the Face Attendece system to review and approve or reject this leave request. The requester will be notified of your decision via email.</p>
 //           </div>
 
 //           <!-- Login Button -->
@@ -509,7 +508,7 @@
 //           <!-- Footer -->
 //           <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e2e8f0;">
 //             <p style="color: #64748b; font-size: 14px; margin: 0;">Request ID: ${leaveRequestId}</p>
-//             <p style="color: #94a3b8; font-size: 12px; margin: 5px 0 0;">This is an automated message from Face </p>
+//             <p style="color: #94a3b8; font-size: 12px; margin: 5px 0 0;">This is an automated message from Face Attendece</p>
 //           </div>
 //         </div>
 //       </div>
@@ -518,7 +517,7 @@
 //     `
 
 //     const mailOptions = {
-//       from: "Face Attendance <faceattendance@noreply.com>",
+//       from: `${institutionName} <faceattendance@noreply.com>`,
 //       to,
 //       subject: `Leave Request Approval Required - ${requesterName} (${requesterCode})`,
 //       html: htmlContent,
@@ -589,7 +588,7 @@
 //     <head>
 //       <meta charset="utf-8">
 //       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-//       <title>Leave Request ${statusText} - Face </title>
+//       <title>Leave Request ${statusText} - Face Attendece</title>
 //     </head>
 //     <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
 //       <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -683,7 +682,7 @@
 //           <!-- Footer -->
 //           <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e2e8f0;">
 //             <p style="color: #64748b; font-size: 14px; margin: 0;">Request ID: ${leaveRequestId}</p>
-//             <p style="color: #94a3b8; font-size: 12px; margin: 5px 0 0;">This is an automated message from Face </p>
+//             <p style="color: #94a3b8; font-size: 12px; margin: 5px 0 0;">This is an automated message from Face Attendece</p>
 //           </div>
 //         </div>
 //       </div>
@@ -692,7 +691,7 @@
 //     `
 
 //     const mailOptions = {
-//       from: `Face Attendance <faceattendance@noreply.com>`,
+//       from: `${institutionName} <faceattendance@noreply.com>`,
 //       to,
 //       subject: `Leave Request ${statusText} - ${leaveTypeLabels[leaveType] || leaveType}`,
 //       html: htmlContent,
@@ -732,7 +731,7 @@
 //     <head>
 //       <meta charset="utf-8">
 //       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-//       <title>Quarterly Attendance Report - Face </title>
+//       <title>Quarterly Attendance Report - Face Attendece</title>
 //     </head>
 //     <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
 //       <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -825,7 +824,7 @@
 
 //           <!-- Footer -->
 //           <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-//             <p style="color: #64748b; font-size: 14px; margin: 0;">This is an automated quarterly report from Face </p>
+//             <p style="color: #64748b; font-size: 14px; margin: 0;">This is an automated quarterly report from Face Attendece</p>
 //             <p style="color: #94a3b8; font-size: 12px; margin: 5px 0 0;">Generated on ${new Date().toLocaleString()}</p>
 //           </div>
 //         </div>
@@ -835,7 +834,7 @@
 //     `
 
 //     const mailOptions = {
-//       from: `Face Attendance <faceattendance@noreply.com>`,
+//       from: `${institutionName} <faceattendance@noreply.com>`,
 //       to,
 //       subject: `Quarterly Attendance Report - ${new Date(startDate).toLocaleDateString()} to ${new Date(endDate).toLocaleDateString()}`,
 //       html: htmlContent,
@@ -860,6 +859,100 @@
 //     return false
 //   }
 // }
+
+// export async function sendLoginOTPEmail({
+//   to,
+//   name,
+//   otp,
+//   userType,
+// }: {
+//   to: string
+//   name: string
+//   otp: string
+//   userType: string
+// }) {
+//   try {
+//     const transporter = createTransporter()
+
+//     const htmlContent = `
+//     <!DOCTYPE html>
+//     <html>
+//     <head>
+//       <meta charset="utf-8">
+//       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+//       <title>Login OTP - Face Attendece</title>
+//     </head>
+//     <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
+//       <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+//         <div style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.2);">
+          
+//           <!-- Header -->
+//           <div style="text-align: center; margin-bottom: 30px;">
+//             <div style="background: linear-gradient(135deg, #3b82f6, #2563eb); width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);">
+//               <span style="color: white; font-size: 32px; font-weight: bold;">🔐</span>
+//             </div>
+//             <h1 style="color: #1e293b; margin: 0; font-size: 28px; font-weight: 700;">Login Verification Code</h1>
+//             <p style="color: #64748b; margin: 10px 0 0; font-size: 16px;">Your one-time password for secure login</p>
+//           </div>
+
+//           <!-- Greeting -->
+//           <div style="margin-bottom: 30px;">
+//             <p style="color: #334155; font-size: 18px; margin: 0;">Hello <strong>${name}</strong>,</p>
+//             <p style="color: #64748b; font-size: 16px; margin: 10px 0 0; line-height: 1.6;">You have requested to log in to your Face Attendece account. Please use the verification code below to complete your login:</p>
+//           </div>
+
+//           <!-- OTP Code -->
+//           <div style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-radius: 15px; padding: 30px; margin-bottom: 25px; border-left: 4px solid #3b82f6; text-align: center;">
+//             <p style="color: #1e40af; margin: 0 0 15px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Your Verification Code</p>
+//             <div style="background: white; border-radius: 12px; padding: 20px; display: inline-block; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);">
+//               <span style="color: #1e3a8a; font-size: 48px; font-weight: 700; letter-spacing: 8px; font-family: 'Courier New', monospace;">${otp}</span>
+//             </div>
+//             <p style="color: #1e40af; margin: 15px 0 0; font-size: 13px;">This code will expire in <strong>5 minutes</strong></p>
+//           </div>
+
+//           <!-- Security Notice -->
+//           <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 15px; padding: 20px; margin-bottom: 25px; border-left: 4px solid #ef4444;">
+//             <h3 style="color: #dc2626; margin: 0 0 10px; font-size: 16px; font-weight: 600;">🔒 Security Notice</h3>
+//             <ul style="color: #b91c1c; margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6;">
+//               <li>Never share this code with anyone</li>
+//               <li>Face Attendece staff will never ask for your OTP</li>
+//               <li>If you didn't request this code, please ignore this email</li>
+//               <li>This code is valid for 5 minutes only</li>
+//             </ul>
+//           </div>
+
+//           <!-- Help Section -->
+//           <div style="background: linear-gradient(135deg, #f3f4f6, #e5e7eb); border-radius: 15px; padding: 20px; margin-bottom: 25px; border-left: 4px solid #6b7280;">
+//             <h3 style="color: #374151; margin: 0 0 10px; font-size: 16px; font-weight: 600;">❓ Need Help?</h3>
+//             <p style="color: #4b5563; margin: 0; font-size: 14px; line-height: 1.5;">If you're having trouble logging in or didn't request this code, please contact your administrator or visit our support page.</p>
+//           </div>
+
+//           <!-- Footer -->
+//           <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+//             <p style="color: #64748b; font-size: 14px; margin: 0;">This is an automated security message from Face Attendece</p>
+//             <p style="color: #94a3b8; font-size: 12px; margin: 5px 0 0;">Generated on ${new Date().toLocaleString()}</p>
+//           </div>
+//         </div>
+//       </div>
+//     </body>
+//     </html>
+//     `
+
+//     const mailOptions = {
+//       from: `${institutionName} <faceattendance@noreply.com>`,
+//       to,
+//       subject: `Your Face Attendece Login Code: ${otp}`,
+//       html: htmlContent,
+//     }
+
+//     await transporter.sendMail(mailOptions)
+//     return true
+//   } catch (error) {
+//     console.error("Failed to send OTP email:", error)
+//     return false
+//   }
+// }
+
 
 
 
@@ -893,7 +986,7 @@ export async function sendWelcomeEmail({
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Welcome to GenAmplify</title>
+      <title>Welcome to Face Attendance</title>
     </head>
     <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
       <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -904,14 +997,14 @@ export async function sendWelcomeEmail({
             <div style="background: linear-gradient(135deg, #0ea5e9, #06b6d4); width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(14, 165, 233, 0.3);">
               <span style="color: white; font-size: 32px; font-weight: bold;">🎉</span>
             </div>
-            <h1 style="color: #1e293b; margin: 0; font-size: 28px; font-weight: 700;">Welcome to GenAmplify!</h1>
+            <h1 style="color: #1e293b; margin: 0; font-size: 28px; font-weight: 700;">Welcome to Face Attendance!</h1>
             <p style="color: #64748b; margin: 10px 0 0; font-size: 16px;">Your account has been successfully created</p>
           </div>
 
           <!-- Greeting -->
           <div style="margin-bottom: 30px;">
             <p style="color: #334155; font-size: 18px; margin: 0;">Hello <strong>${name}</strong>,</p>
-            <p style="color: #64748b; font-size: 16px; margin: 10px 0 0; line-height: 1.6;">Welcome to GenAmplify! Your ${type} account has been created successfully. Here are your login credentials:</p>
+            <p style="color: #64748b; font-size: 16px; margin: 10px 0 0; line-height: 1.6;">Welcome to Face Attendance! Your ${type} account has been created successfully. Here are your login credentials:</p>
           </div>
 
           <!-- Account Details -->
@@ -959,20 +1052,20 @@ export async function sendWelcomeEmail({
           <!-- Next Steps -->
           <div style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 15px; padding: 20px; margin-bottom: 25px; border-left: 4px solid #3b82f6;">
             <h3 style="color: #1d4ed8; margin: 0 0 10px; font-size: 16px; font-weight: 600;">🚀 Next Steps</h3>
-            <p style="color: #1e40af; margin: 0; font-size: 14px; line-height: 1.5;">Use your credentials to log in to the GenAmplify system and start using the attendance management features.</p>
+            <p style="color: #1e40af; margin: 0; font-size: 14px; line-height: 1.5;">Use your credentials to log in to the Face Attendance system and start using the attendance management features.</p>
           </div>
 
           <!-- Login Button -->
           <div style="text-align: center; margin-bottom: 25px;">
             <a href="https://faceattendv1.netlify.app/login" style="display: inline-block; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; text-decoration: none; padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); transition: all 0.3s ease;">
-              🚀 Login to GenAmplify
+              🚀 Login to Face Attendance
             </a>
             <p style="color: #94a3b8; font-size: 13px; margin: 10px 0 0;">Click the button above to access your dashboard</p>
           </div>
 
           <!-- Footer -->
           <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-            <p style="color: #64748b; font-size: 14px; margin: 0;">This is an automated message from GenAmplify</p>
+            <p style="color: #64748b; font-size: 14px; margin: 0;">This is an automated message from Face Attendance</p>
             <p style="color: #94a3b8; font-size: 12px; margin: 5px 0 0;">Please do not reply to this email</p>
           </div>
         </div>
@@ -982,7 +1075,7 @@ export async function sendWelcomeEmail({
     `
 
     const mailOptions = {
-      from: process.env.SMTP_USER,
+      from: `${institutionName || "Face Attendance"} <faceattendance@noreply.com>`,
       to,
       subject,
       html: htmlContent,
@@ -1094,7 +1187,7 @@ export async function sendUpdateNotificationEmail({
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Account Updated - GenAmplify</title>
+      <title>Account Updated - Face Attendance</title>
     </head>
     <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
       <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -1206,14 +1299,14 @@ export async function sendUpdateNotificationEmail({
           <!-- Login Button -->
           <div style="text-align: center; margin-bottom: 25px;">
             <a href="https://faceattendv1.netlify.app/login" style="display: inline-block; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; text-decoration: none; padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); transition: all 0.3s ease;">
-              🚀 Login to GenAmplify
+              🚀 Login to Face Attendance
             </a>
             <p style="color: #94a3b8; font-size: 13px; margin: 10px 0 0;">Click the button above to access your dashboard</p>
           </div>
 
           <!-- Footer -->
           <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-            <p style="color: #64748b; font-size: 14px; margin: 0;">This is an automated message from GenAmplify</p>
+            <p style="color: #64748b; font-size: 14px; margin: 0;">This is an automated message from Face Attendance</p>
             <p style="color: #94a3b8; font-size: 12px; margin: 5px 0 0;">Please do not reply to this email</p>
           </div>
         </div>
@@ -1223,7 +1316,7 @@ export async function sendUpdateNotificationEmail({
     `
 
     const mailOptions = {
-      from: process.env.SMTP_USER,
+      from: `${institutionName || "Face Attendance"} <faceattendance@noreply.com>`,
       to,
       subject,
       html: htmlContent,
@@ -1282,7 +1375,7 @@ export async function sendLeaveRequestNotificationEmail({
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Leave Request - GenAmplify</title>
+      <title>Leave Request - Face Attendance</title>
     </head>
     <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
       <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -1358,7 +1451,7 @@ export async function sendLeaveRequestNotificationEmail({
           <!-- Action Required -->
           <div style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-radius: 15px; padding: 20px; margin-bottom: 25px; border-left: 4px solid #3b82f6;">
             <h3 style="color: #1d4ed8; margin: 0 0 10px; font-size: 16px; font-weight: 600;">⚡ Action Required</h3>
-            <p style="color: #1e40af; margin: 0; font-size: 14px; line-height: 1.5;">Please log in to the GenAmplify system to review and approve or reject this leave request. The requester will be notified of your decision via email.</p>
+            <p style="color: #1e40af; margin: 0; font-size: 14px; line-height: 1.5;">Please log in to the Face Attendance system to review and approve or reject this leave request. The requester will be notified of your decision via email.</p>
           </div>
 
           <!-- Login Button -->
@@ -1372,7 +1465,7 @@ export async function sendLeaveRequestNotificationEmail({
           <!-- Footer -->
           <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e2e8f0;">
             <p style="color: #64748b; font-size: 14px; margin: 0;">Request ID: ${leaveRequestId}</p>
-            <p style="color: #94a3b8; font-size: 12px; margin: 5px 0 0;">This is an automated message from GenAmplify</p>
+            <p style="color: #94a3b8; font-size: 12px; margin: 5px 0 0;">This is an automated message from Face Attendance</p>
           </div>
         </div>
       </div>
@@ -1381,7 +1474,7 @@ export async function sendLeaveRequestNotificationEmail({
     `
 
     const mailOptions = {
-      from: process.env.SMTP_USER,
+      from: `Face Attendance <faceattendance@noreply.com>`,
       to,
       subject: `Leave Request Approval Required - ${requesterName} (${requesterCode})`,
       html: htmlContent,
@@ -1452,7 +1545,7 @@ export async function sendLeaveStatusNotificationEmail({
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Leave Request ${statusText} - GenAmplify</title>
+      <title>Leave Request ${statusText} - Face Attendance</title>
     </head>
     <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
       <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -1546,7 +1639,7 @@ export async function sendLeaveStatusNotificationEmail({
           <!-- Footer -->
           <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e2e8f0;">
             <p style="color: #64748b; font-size: 14px; margin: 0;">Request ID: ${leaveRequestId}</p>
-            <p style="color: #94a3b8; font-size: 12px; margin: 5px 0 0;">This is an automated message from GenAmplify</p>
+            <p style="color: #94a3b8; font-size: 12px; margin: 5px 0 0;">This is an automated message from Face Attendance</p>
           </div>
         </div>
       </div>
@@ -1555,7 +1648,7 @@ export async function sendLeaveStatusNotificationEmail({
     `
 
     const mailOptions = {
-      from: process.env.SMTP_USER,
+      from: `Face Attendance <faceattendance@noreply.com>`,
       to,
       subject: `Leave Request ${statusText} - ${leaveTypeLabels[leaveType] || leaveType}`,
       html: htmlContent,
@@ -1595,7 +1688,7 @@ export async function sendQuarterlyReportEmail({
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Quarterly Attendance Report - GenAmplify</title>
+      <title>Quarterly Attendance Report - Face Attendance</title>
     </head>
     <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
       <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -1688,7 +1781,7 @@ export async function sendQuarterlyReportEmail({
 
           <!-- Footer -->
           <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-            <p style="color: #64748b; font-size: 14px; margin: 0;">This is an automated quarterly report from GenAmplify</p>
+            <p style="color: #64748b; font-size: 14px; margin: 0;">This is an automated quarterly report from Face Attendance</p>
             <p style="color: #94a3b8; font-size: 12px; margin: 5px 0 0;">Generated on ${new Date().toLocaleString()}</p>
           </div>
         </div>
@@ -1698,7 +1791,7 @@ export async function sendQuarterlyReportEmail({
     `
 
     const mailOptions = {
-      from: process.env.SMTP_USER,
+      from: `Face Attendance <faceattendance@noreply.com>`,
       to,
       subject: `Quarterly Attendance Report - ${new Date(startDate).toLocaleDateString()} to ${new Date(endDate).toLocaleDateString()}`,
       html: htmlContent,
@@ -1744,7 +1837,7 @@ export async function sendLoginOTPEmail({
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Login OTP - GenAmplify</title>
+      <title>Login OTP - Face Attendance</title>
     </head>
     <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
       <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -1762,7 +1855,7 @@ export async function sendLoginOTPEmail({
           <!-- Greeting -->
           <div style="margin-bottom: 30px;">
             <p style="color: #334155; font-size: 18px; margin: 0;">Hello <strong>${name}</strong>,</p>
-            <p style="color: #64748b; font-size: 16px; margin: 10px 0 0; line-height: 1.6;">You have requested to log in to your GenAmplify account. Please use the verification code below to complete your login:</p>
+            <p style="color: #64748b; font-size: 16px; margin: 10px 0 0; line-height: 1.6;">You have requested to log in to your Face Attendance account. Please use the verification code below to complete your login:</p>
           </div>
 
           <!-- OTP Code -->
@@ -1779,7 +1872,7 @@ export async function sendLoginOTPEmail({
             <h3 style="color: #dc2626; margin: 0 0 10px; font-size: 16px; font-weight: 600;">🔒 Security Notice</h3>
             <ul style="color: #b91c1c; margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6;">
               <li>Never share this code with anyone</li>
-              <li>GenAmplify staff will never ask for your OTP</li>
+              <li>Face Attendance staff will never ask for your OTP</li>
               <li>If you didn't request this code, please ignore this email</li>
               <li>This code is valid for 5 minutes only</li>
             </ul>
@@ -1793,7 +1886,7 @@ export async function sendLoginOTPEmail({
 
           <!-- Footer -->
           <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-            <p style="color: #64748b; font-size: 14px; margin: 0;">This is an automated security message from GenAmplify</p>
+            <p style="color: #64748b; font-size: 14px; margin: 0;">This is an automated security message from Face Attendance</p>
             <p style="color: #94a3b8; font-size: 12px; margin: 5px 0 0;">Generated on ${new Date().toLocaleString()}</p>
           </div>
         </div>
@@ -1803,9 +1896,9 @@ export async function sendLoginOTPEmail({
     `
 
     const mailOptions = {
-      from: process.env.SMTP_USER,
+      from: `Face Attendance <faceattendance@noreply.com>`,
       to,
-      subject: `Your GenAmplify Login Code: ${otp}`,
+      subject: `Your Face Attendance Login Code: ${otp}`,
       html: htmlContent,
     }
 
