@@ -1822,6 +1822,12 @@ const allLinks = [
   { href: "/faceid", label: "Face ID", roles: ["SuperAdmin", "Admin", "Manager", "Staff", "Teacher"] },
   { href: "/staff", label: "Staff", roles: ["SuperAdmin", "Admin", "Manager"] },
   { href: "/students", label: "Students", roles: ["SuperAdmin", "Admin", "Manager", "Teacher"] },
+  
+   {
+    href: "/notifications",
+    label: "Notifications",
+    roles: ["SuperAdmin", "Admin", "Manager", "Staff", "Teacher", "Student"],
+  },
   {
     href: "/leave-requests",
     label: "My Leave Requests",
@@ -1829,12 +1835,8 @@ const allLinks = [
   },
   { href: "/leave-approval", label: "Leave Approval", roles: ["SuperAdmin", "Admin", "Manager", "Teacher"] },
   { href: "/reports", label: "Reports", roles: ["SuperAdmin", "Admin", "Manager"] },
-  {
-    href: "/notifications",
-    label: "Notifications",
-    roles: ["SuperAdmin", "Admin", "Manager", "Staff", "Teacher", "Student"],
-  },
-  { href: "/settings", label: "Settings", roles: ["Admin"] },
+ 
+  { href: "/settings", label: "Settings", roles: ["Admin","SuperAdmin"] },
   { href: "/super-admin/institutions", label: "Institutions", roles: ["SuperAdmin"] },
   { href: "/super-admin", label: "Super Admin", roles: ["SuperAdmin"] },
 ]
