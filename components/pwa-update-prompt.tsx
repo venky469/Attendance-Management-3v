@@ -101,7 +101,7 @@
 
 "use client"
 
-import { useEffect, useState } from "react"
+import { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { RefreshCw, X, Sparkles } from "lucide-react"
@@ -181,7 +181,7 @@ export function PWAUpdatePrompt() {
             <div className="space-y-2">
               <p className="text-sm font-medium text-foreground">What's New:</p>
               <ul className="space-y-1.5 text-sm text-muted-foreground">
-                {latestUpdate.features.slice(0, 4).map((feature, index) => (
+                {latestUpdate.features.slice(0, 4).map((feature: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined, index: Key | null | undefined) => (
                   <li key={index} className="flex items-start gap-2">
                     <span className="text-primary mt-0.5">•</span>
                     <span>{feature}</span>

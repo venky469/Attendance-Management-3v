@@ -1685,7 +1685,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 px-4 pt-2 pb-8">
       <div className="mx-auto max-w-6xl">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2 text-balance">Face Attendance</h1>
+          <h1 className="text-4xl font-bold text-foreground mb-2 text-balance">Face @Attendance</h1>
           <p className="text-muted-foreground text-lg">Smart Biometric Attendance with Face Recognition Technology</p>
         </div>
 

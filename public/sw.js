@@ -402,7 +402,7 @@
 
 
 
-const CACHE_NAME = "genamplify-v1.2.1"
+const CACHE_NAME = "Face Attendance-v1.2.1"
 const OFFLINE_URL = "/offline"
 
 // Assets to cache on install (only critical assets)
@@ -411,8 +411,8 @@ const STATIC_ASSETS = [
   "/offline",
   "/login",
   "/manifest.json",
-  "/icons/icon-192x192.png",
-  "/icons/icon-512x512.png",
+  "/logo3.jpg",
+  "/logo3.jpg",
 ]
 
 const CACHE_BLACKLIST = ["/api/", "/models/", ".jpg", ".jpeg", ".png", ".gif", ".webp", "cloudinary.com", "blob.v0.app"]
@@ -501,11 +501,11 @@ self.addEventListener("push", (event) => {
   console.log("[SW] Push notification received")
 
   const data = event.data ? event.data.json() : {}
-  const title = data.title || "Genamplify Notification"
+  const title = data.title || "Face Attendance Notification"
   const options = {
     body: data.body || "You have a new notification",
-    icon: "/icons/icon-192x192.png",
-    badge: "/icons/icon-72x72.png",
+    icon: "/logo3.jpg",
+    badge: "/logo3.jpg",
     vibrate: [200, 100, 200],
     data: data.data || {},
     actions: data.actions || [],

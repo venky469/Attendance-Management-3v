@@ -215,14 +215,19 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Genamplify Attendance System",
+  title: "FaceAttendance System",
   description: "Advanced digital attendance and employee management system with Face ID recognition",
-  generator: "Genamplify Services",
+  generator: "Face Attendance Services",
+  icons: {
+    icon: "/logo3.jpg",
+    shortcut: "/logo3.jpg",
+    apple: "/logo3.jpg",
+  },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Genamplify",
+    title: "FaceAttendance",
   },
   formatDetection: {
     telephone: false,
