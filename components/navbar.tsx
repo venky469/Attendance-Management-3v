@@ -2121,7 +2121,7 @@ export function Navbar() {
     return null
   }
 
-  const brandName = user?.institutionName?.trim() ? user.institutionName : "Genamplify"
+  const brandName = user?.institutionName?.trim() ? user.institutionName : "Face Attendece"
   const brandInitial = brandName.charAt(0).toUpperCase()
 
   return (

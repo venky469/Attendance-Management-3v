@@ -1,3 +1,132 @@
+// // // const CACHE_NAME = "faceattend-v1"
+// // // const OFFLINE_URL = "/offline"
+
+// // // // Assets to cache on install
+// // // const STATIC_ASSETS = [
+// // //   "/",
+// // //   "/offline",
+// // //   "/login",
+// // //   "/manifest.json",
+// // //   "/logo3.jpg",
+// // //   "/logo3.jpg",
+// // // ]
+
+// // // // Install event - cache static assets
+// // // self.addEventListener("install", (event) => {
+// // //   console.log("[SW] Installing service worker...")
+// // //   event.waitUntil(
+// // //     caches.open(CACHE_NAME).then((cache) => {
+// // //       console.log("[SW] Caching static assets")
+// // //       return cache.addAll(STATIC_ASSETS)
+// // //     }),
+// // //   )
+// // //   self.skipWaiting()
+// // // })
+
+// // // // Activate event - clean up old caches
+// // // self.addEventListener("activate", (event) => {
+// // //   console.log("[SW] Activating service worker...")
+// // //   event.waitUntil(
+// // //     caches.keys().then((cacheNames) => {
+// // //       return Promise.all(
+// // //         cacheNames.map((cacheName) => {
+// // //           if (cacheName !== CACHE_NAME) {
+// // //             console.log("[SW] Deleting old cache:", cacheName)
+// // //             return caches.delete(cacheName)
+// // //           }
+// // //         }),
+// // //       )
+// // //     }),
+// // //   )
+// // //   self.clients.claim()
+// // // })
+
+// // // // Fetch event - serve from cache, fallback to network
+// // // self.addEventListener("fetch", (event) => {
+// // //   // Skip non-GET requests
+// // //   if (event.request.method !== "GET") return
+
+// // //   // Skip chrome extensions and other non-http requests
+// // //   if (!event.request.url.startsWith("http")) return
+
+// // //   event.respondWith(
+// // //     caches.match(event.request).then((cachedResponse) => {
+// // //       if (cachedResponse) {
+// // //         return cachedResponse
+// // //       }
+
+// // //       return fetch(event.request)
+// // //         .then((response) => {
+// // //           // Don't cache non-successful responses
+// // //           if (!response || response.status !== 200 || response.type === "error") {
+// // //             return response
+// // //           }
+
+// // //           // Clone the response
+// // //           const responseToCache = response.clone()
+
+// // //           // Cache API responses and pages
+// // //           if (event.request.url.includes("/api/") || event.request.destination === "document") {
+// // //             caches.open(CACHE_NAME).then((cache) => {
+// // //               cache.put(event.request, responseToCache)
+// // //             })
+// // //           }
+
+// // //           return response
+// // //         })
+// // //         .catch(() => {
+// // //           // Return offline page for navigation requests
+// // //           if (event.request.destination === "document") {
+// // //             return caches.match(OFFLINE_URL)
+// // //           }
+// // //         })
+// // //     }),
+// // //   )
+// // // })
+
+// // // // Push notification event
+// // // self.addEventListener("push", (event) => {
+// // //   console.log("[SW] Push notification received")
+
+// // //   const data = event.data ? event.data.json() : {}
+// // //   const title = data.title || "Face Attendece Notification"
+// // //   const options = {
+// // //     body: data.body || "You have a new notification",
+// // //     icon: "/logo3.jpg",
+// // //     badge: "/logo3.jpg",
+// // //     vibrate: [200, 100, 200],
+// // //     data: data.data || {},
+// // //     actions: data.actions || [],
+// // //   }
+
+// // //   event.waitUntil(self.registration.showNotification(title, options))
+// // // })
+
+// // // // Notification click event
+// // // self.addEventListener("notificationclick", (event) => {
+// // //   console.log("[SW] Notification clicked")
+// // //   event.notification.close()
+
+// // //   const urlToOpen = event.notification.data?.url || "/"
+
+// // //   event.waitUntil(
+// // //     clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+// // //       // Check if there's already a window open
+// // //       for (const client of clientList) {
+// // //         if (client.url === urlToOpen && "focus" in client) {
+// // //           return client.focus()
+// // //         }
+// // //       }
+// // //       // Open new window if none exists
+// // //       if (clients.openWindow) {
+// // //         return clients.openWindow(urlToOpen)
+// // //       }
+// // //     }),
+// // //   )
+// // // })
+
+
+
 // // const CACHE_NAME = "faceattend-v1"
 // // const OFFLINE_URL = "/offline"
 
@@ -39,6 +168,13 @@
 // //     }),
 // //   )
 // //   self.clients.claim()
+// // })
+
+// // self.addEventListener("message", (event) => {
+// //   if (event.data && event.data.type === "SKIP_WAITING") {
+// //     console.log("[SW] Skipping waiting and activating new service worker")
+// //     self.skipWaiting()
+// //   }
 // // })
 
 // // // Fetch event - serve from cache, fallback to network
@@ -89,7 +225,7 @@
 // //   console.log("[SW] Push notification received")
 
 // //   const data = event.data ? event.data.json() : {}
-// //   const title = data.title || "Face Attendece Notification"
+// //   const title = data.title || "Face Attendence Notification"
 // //   const options = {
 // //     body: data.body || "You have a new notification",
 // //     icon: "/logo3.jpg",
@@ -127,7 +263,8 @@
 
 
 
-// const CACHE_NAME = "faceattend-v1"
+
+// const CACHE_NAME = "Face Attendece-v1.2.0"
 // const OFFLINE_URL = "/offline"
 
 // // Assets to cache on install
@@ -225,7 +362,7 @@
 //   console.log("[SW] Push notification received")
 
 //   const data = event.data ? event.data.json() : {}
-//   const title = data.title || "Face Attendence Notification"
+//   const title = data.title || "Face Attendece Notification"
 //   const options = {
 //     body: data.body || "You have a new notification",
 //     icon: "/logo3.jpg",
@@ -264,32 +401,35 @@
 
 
 
-const CACHE_NAME = "Face Attendece-v1.2.0"
+
+const CACHE_NAME = "genamplify-v1.2.1"
 const OFFLINE_URL = "/offline"
 
-// Assets to cache on install
+// Assets to cache on install (only critical assets)
 const STATIC_ASSETS = [
   "/",
   "/offline",
   "/login",
   "/manifest.json",
-  "/logo3.jpg",
-  "/logo3.jpg",
+  "/icons/icon-192x192.png",
+  "/icons/icon-512x512.png",
 ]
 
-// Install event - cache static assets
+const CACHE_BLACKLIST = ["/api/", "/models/", ".jpg", ".jpeg", ".png", ".gif", ".webp", "cloudinary.com", "blob.v0.app"]
+
 self.addEventListener("install", (event) => {
   console.log("[SW] Installing service worker...")
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log("[SW] Caching static assets")
-      return cache.addAll(STATIC_ASSETS)
+      return cache.addAll(STATIC_ASSETS).catch((err) => {
+        console.error("[SW] Failed to cache assets:", err)
+      })
     }),
   )
   self.skipWaiting()
 })
 
-// Activate event - clean up old caches
 self.addEventListener("activate", (event) => {
   console.log("[SW] Activating service worker...")
   event.waitUntil(
@@ -314,59 +454,58 @@ self.addEventListener("message", (event) => {
   }
 })
 
-// Fetch event - serve from cache, fallback to network
 self.addEventListener("fetch", (event) => {
-  // Skip non-GET requests
   if (event.request.method !== "GET") return
-
-  // Skip chrome extensions and other non-http requests
   if (!event.request.url.startsWith("http")) return
 
+  const shouldCache = !CACHE_BLACKLIST.some((pattern) => event.request.url.includes(pattern))
+
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse
-      }
-
-      return fetch(event.request)
-        .then((response) => {
-          // Don't cache non-successful responses
-          if (!response || response.status !== 200 || response.type === "error") {
-            return response
-          }
-
-          // Clone the response
-          const responseToCache = response.clone()
-
-          // Cache API responses and pages
-          if (event.request.url.includes("/api/") || event.request.destination === "document") {
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseToCache)
-            })
-          }
-
+    fetch(event.request)
+      .then((response) => {
+        // Don't cache non-successful responses
+        if (!response || response.status !== 200 || response.type === "error") {
           return response
-        })
-        .catch(() => {
+        }
+
+        if (
+          shouldCache &&
+          (event.request.destination === "document" ||
+            event.request.destination === "script" ||
+            event.request.destination === "style")
+        ) {
+          const responseToCache = response.clone()
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache)
+          })
+        }
+
+        return response
+      })
+      .catch(() => {
+        // Fallback to cache on network failure
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse
+          }
           // Return offline page for navigation requests
           if (event.request.destination === "document") {
             return caches.match(OFFLINE_URL)
           }
         })
-    }),
+      }),
   )
 })
 
-// Push notification event
 self.addEventListener("push", (event) => {
   console.log("[SW] Push notification received")
 
   const data = event.data ? event.data.json() : {}
-  const title = data.title || "Face Attendece Notification"
+  const title = data.title || "Genamplify Notification"
   const options = {
     body: data.body || "You have a new notification",
-    icon: "/logo3.jpg",
-    badge: "/logo3.jpg",
+    icon: "/icons/icon-192x192.png",
+    badge: "/icons/icon-72x72.png",
     vibrate: [200, 100, 200],
     data: data.data || {},
     actions: data.actions || [],
@@ -375,7 +514,6 @@ self.addEventListener("push", (event) => {
   event.waitUntil(self.registration.showNotification(title, options))
 })
 
-// Notification click event
 self.addEventListener("notificationclick", (event) => {
   console.log("[SW] Notification clicked")
   event.notification.close()
@@ -384,13 +522,11 @@ self.addEventListener("notificationclick", (event) => {
 
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
-      // Check if there's already a window open
       for (const client of clientList) {
         if (client.url === urlToOpen && "focus" in client) {
           return client.focus()
         }
       }
-      // Open new window if none exists
       if (clients.openWindow) {
         return clients.openWindow(urlToOpen)
       }

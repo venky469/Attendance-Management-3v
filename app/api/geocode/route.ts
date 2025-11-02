@@ -1,3 +1,58 @@
+// // import { type NextRequest, NextResponse } from "next/server"
+
+// // export async function GET(req: NextRequest) {
+// //   try {
+// //     const address = req.nextUrl.searchParams.get("address")
+// //     if (!address) {
+// //       return NextResponse.json({ error: "Address parameter is required" }, { status: 400 })
+// //     }
+
+// //     // Try Google Maps Geocoding API first if API key is available
+// //     const googleApiKey = process.env.GOOGLE_MAPS_API_KEY
+// //     if (googleApiKey) {
+// //       const googleUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${googleApiKey}`
+// //       const googleRes = await fetch(googleUrl)
+// //       const googleData = await googleRes.json()
+
+// //       if (googleData.status === "OK" && googleData.results?.[0]) {
+// //         const result = googleData.results[0]
+// //         return NextResponse.json({
+// //           latitude: result.geometry.location.lat,
+// //           longitude: result.geometry.location.lng,
+// //           formattedAddress: result.formatted_address,
+// //           source: "google",
+// //         })
+// //       }
+// //     }
+
+// //     // Fallback to Nominatim (OpenStreetMap) - free, no API key required
+// //     const nominatimUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`
+// //     const nominatimRes = await fetch(nominatimUrl, {
+// //       headers: {
+// //         "User-Agent": "GenAmplify-Attendance-System/1.0",
+// //       },
+// //     })
+// //     const nominatimData = await nominatimRes.json()
+
+// //     if (nominatimData && nominatimData.length > 0) {
+// //       const result = nominatimData[0]
+// //       return NextResponse.json({
+// //         latitude: Number.parseFloat(result.lat),
+// //         longitude: Number.parseFloat(result.lon),
+// //         formattedAddress: result.display_name,
+// //         source: "nominatim",
+// //       })
+// //     }
+
+// //     return NextResponse.json({ error: "Location not found for the given address" }, { status: 404 })
+// //   } catch (error) {
+// //     console.error("[geocode] Error:", error)
+// //     return NextResponse.json({ error: "Failed to geocode address" }, { status: 500 })
+// //   }
+// // }
+
+
+
 // import { type NextRequest, NextResponse } from "next/server"
 
 // export async function GET(req: NextRequest) {
@@ -51,9 +106,122 @@
 //   }
 // }
 
+// export async function POST(req: NextRequest) {
+//   try {
+//     const { latitude, longitude } = await req.json()
+
+//     if (!latitude || !longitude) {
+//       return NextResponse.json({ error: "Latitude and longitude are required" }, { status: 400 })
+//     }
+
+//     console.log("[v0] Reverse geocoding:", { latitude, longitude })
+
+//     // Try Google Maps Reverse Geocoding API first if API key is available
+//     const googleApiKey = process.env.GOOGLE_MAPS_API_KEY
+//     if (googleApiKey) {
+//       const googleUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${googleApiKey}`
+//       const googleRes = await fetch(googleUrl)
+//       const googleData = await googleRes.json()
+
+//       if (googleData.status === "OK" && googleData.results?.[0]) {
+//         const result = googleData.results[0]
+//         const addressComponents = result.address_components
+
+//         let city = ""
+//         let country = ""
+
+//         for (const component of addressComponents) {
+//           if (component.types.includes("locality")) {
+//             city = component.long_name
+//           } else if (component.types.includes("administrative_area_level_1") && !city) {
+//             city = component.long_name
+//           }
+//           if (component.types.includes("country")) {
+//             country = component.long_name
+//           }
+//         }
+
+//         console.log("[v0] Google reverse geocode result:", { city, country })
+
+//         return NextResponse.json({
+//           city: city || "Unknown",
+//           country: country || "Unknown",
+//           formattedAddress: result.formatted_address,
+//           source: "google",
+//         })
+//       }
+//     }
+
+//     // Fallback to Nominatim (OpenStreetMap) - free, no API key required
+//     const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+//     const nominatimRes = await fetch(nominatimUrl, {
+//       headers: {
+//         "User-Agent": "GenAmplify-Attendance-System/1.0",
+//       },
+//     })
+//     const nominatimData = await nominatimRes.json()
+
+//     if (nominatimData && nominatimData.address) {
+//       const address = nominatimData.address
+//       const city = address.city || address.town || address.village || address.county || "Unknown"
+//       const country = address.country || "Unknown"
+
+//       console.log("[v0] Nominatim reverse geocode result:", { city, country })
+
+//       return NextResponse.json({
+//         city,
+//         country,
+//         formattedAddress: nominatimData.display_name,
+//         source: "nominatim",
+//       })
+//     }
+
+//     console.log("[v0] No reverse geocode results found")
+//     return NextResponse.json(
+//       {
+//         city: "Unknown",
+//         country: "Unknown",
+//         error: "Location details not found",
+//       },
+//       { status: 200 },
+//     )
+//   } catch (error) {
+//     console.error("[v0] Reverse geocode error:", error)
+//     return NextResponse.json(
+//       {
+//         city: "Unknown",
+//         country: "Unknown",
+//         error: "Failed to reverse geocode location",
+//       },
+//       { status: 200 },
+//     )
+//   }
+// }
+
+
 
 
 import { type NextRequest, NextResponse } from "next/server"
+
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 10000): Promise<Response> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    })
+    clearTimeout(timeoutId)
+    return response
+  } catch (error) {
+    clearTimeout(timeoutId)
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(`Request timeout after ${timeoutMs}ms`)
+    }
+    throw error
+  }
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -62,41 +230,52 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Address parameter is required" }, { status: 400 })
     }
 
-    // Try Google Maps Geocoding API first if API key is available
     const googleApiKey = process.env.GOOGLE_MAPS_API_KEY
     if (googleApiKey) {
-      const googleUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${googleApiKey}`
-      const googleRes = await fetch(googleUrl)
-      const googleData = await googleRes.json()
+      try {
+        const googleUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${googleApiKey}`
+        const googleRes = await fetchWithTimeout(googleUrl, {}, 8000)
+        const googleData = await googleRes.json()
 
-      if (googleData.status === "OK" && googleData.results?.[0]) {
-        const result = googleData.results[0]
-        return NextResponse.json({
-          latitude: result.geometry.location.lat,
-          longitude: result.geometry.location.lng,
-          formattedAddress: result.formatted_address,
-          source: "google",
-        })
+        if (googleData.status === "OK" && googleData.results?.[0]) {
+          const result = googleData.results[0]
+          return NextResponse.json({
+            latitude: result.geometry.location.lat,
+            longitude: result.geometry.location.lng,
+            formattedAddress: result.formatted_address,
+            source: "google",
+          })
+        }
+      } catch (error) {
+        console.error("[geocode] Google Maps API timeout or error:", error)
+        // Fall through to Nominatim
       }
     }
 
-    // Fallback to Nominatim (OpenStreetMap) - free, no API key required
-    const nominatimUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`
-    const nominatimRes = await fetch(nominatimUrl, {
-      headers: {
-        "User-Agent": "GenAmplify-Attendance-System/1.0",
-      },
-    })
-    const nominatimData = await nominatimRes.json()
+    try {
+      const nominatimUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`
+      const nominatimRes = await fetchWithTimeout(
+        nominatimUrl,
+        {
+          headers: {
+            "User-Agent": "GenAmplify-Attendance-System/1.0",
+          },
+        },
+        8000,
+      )
+      const nominatimData = await nominatimRes.json()
 
-    if (nominatimData && nominatimData.length > 0) {
-      const result = nominatimData[0]
-      return NextResponse.json({
-        latitude: Number.parseFloat(result.lat),
-        longitude: Number.parseFloat(result.lon),
-        formattedAddress: result.display_name,
-        source: "nominatim",
-      })
+      if (nominatimData && nominatimData.length > 0) {
+        const result = nominatimData[0]
+        return NextResponse.json({
+          latitude: Number.parseFloat(result.lat),
+          longitude: Number.parseFloat(result.lon),
+          formattedAddress: result.display_name,
+          source: "nominatim",
+        })
+      }
+    } catch (error) {
+      console.error("[geocode] Nominatim API timeout or error:", error)
     }
 
     return NextResponse.json({ error: "Location not found for the given address" }, { status: 404 })
@@ -116,64 +295,75 @@ export async function POST(req: NextRequest) {
 
     console.log("[v0] Reverse geocoding:", { latitude, longitude })
 
-    // Try Google Maps Reverse Geocoding API first if API key is available
     const googleApiKey = process.env.GOOGLE_MAPS_API_KEY
     if (googleApiKey) {
-      const googleUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${googleApiKey}`
-      const googleRes = await fetch(googleUrl)
-      const googleData = await googleRes.json()
+      try {
+        const googleUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${googleApiKey}`
+        const googleRes = await fetchWithTimeout(googleUrl, {}, 8000)
+        const googleData = await googleRes.json()
 
-      if (googleData.status === "OK" && googleData.results?.[0]) {
-        const result = googleData.results[0]
-        const addressComponents = result.address_components
+        if (googleData.status === "OK" && googleData.results?.[0]) {
+          const result = googleData.results[0]
+          const addressComponents = result.address_components
 
-        let city = ""
-        let country = ""
+          let city = ""
+          let country = ""
 
-        for (const component of addressComponents) {
-          if (component.types.includes("locality")) {
-            city = component.long_name
-          } else if (component.types.includes("administrative_area_level_1") && !city) {
-            city = component.long_name
+          for (const component of addressComponents) {
+            if (component.types.includes("locality")) {
+              city = component.long_name
+            } else if (component.types.includes("administrative_area_level_1") && !city) {
+              city = component.long_name
+            }
+            if (component.types.includes("country")) {
+              country = component.long_name
+            }
           }
-          if (component.types.includes("country")) {
-            country = component.long_name
-          }
+
+          console.log("[v0] Google reverse geocode result:", { city, country })
+
+          return NextResponse.json({
+            city: city || "Unknown",
+            country: country || "Unknown",
+            formattedAddress: result.formatted_address,
+            source: "google",
+          })
         }
-
-        console.log("[v0] Google reverse geocode result:", { city, country })
-
-        return NextResponse.json({
-          city: city || "Unknown",
-          country: country || "Unknown",
-          formattedAddress: result.formatted_address,
-          source: "google",
-        })
+      } catch (error) {
+        console.error("[v0] Google reverse geocode timeout or error:", error)
+        // Fall through to Nominatim
       }
     }
 
-    // Fallback to Nominatim (OpenStreetMap) - free, no API key required
-    const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
-    const nominatimRes = await fetch(nominatimUrl, {
-      headers: {
-        "User-Agent": "GenAmplify-Attendance-System/1.0",
-      },
-    })
-    const nominatimData = await nominatimRes.json()
+    try {
+      const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+      const nominatimRes = await fetchWithTimeout(
+        nominatimUrl,
+        {
+          headers: {
+            "User-Agent": "GenAmplify-Attendance-System/1.0",
+          },
+        },
+        8000,
+      )
+      const nominatimData = await nominatimRes.json()
 
-    if (nominatimData && nominatimData.address) {
-      const address = nominatimData.address
-      const city = address.city || address.town || address.village || address.county || "Unknown"
-      const country = address.country || "Unknown"
+      if (nominatimData && nominatimData.address) {
+        const address = nominatimData.address
+        const city = address.city || address.town || address.village || address.county || "Unknown"
+        const country = address.country || "Unknown"
 
-      console.log("[v0] Nominatim reverse geocode result:", { city, country })
+        console.log("[v0] Nominatim reverse geocode result:", { city, country })
 
-      return NextResponse.json({
-        city,
-        country,
-        formattedAddress: nominatimData.display_name,
-        source: "nominatim",
-      })
+        return NextResponse.json({
+          city,
+          country,
+          formattedAddress: nominatimData.display_name,
+          source: "nominatim",
+        })
+      }
+    } catch (error) {
+      console.error("[v0] Nominatim reverse geocode timeout or error:", error)
     }
 
     console.log("[v0] No reverse geocode results found")
