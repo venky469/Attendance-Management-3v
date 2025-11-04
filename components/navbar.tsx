@@ -1815,11 +1815,11 @@ const allLinks = [
   { href: "/", label: "Dashboard", roles: ["SuperAdmin", "Admin", "Manager", "Staff", "Teacher", "Student"] },
   {
     href: "/attendance",
-    label: "Attendance",
+    label: "Attendance Reports",
     roles: ["SuperAdmin", "Admin", "Manager", "Staff", "Teacher", "Student"],
   },
   { href: "/student-attendance", label: "My Attendance", roles: [] },
-  { href: "/faceid", label: "Face ID", roles: ["SuperAdmin", "Admin", "Manager", "Staff", "Teacher"] },
+  { href: "/faceid", label: "Live Attendance", roles: ["SuperAdmin", "Admin", "Manager", "Staff", "Teacher"] },
   { href: "/staff", label: "Staff", roles: ["SuperAdmin", "Admin", "Manager"] },
   { href: "/students", label: "Students", roles: ["SuperAdmin", "Admin", "Manager", "Teacher"] },
   
