@@ -8,7 +8,7 @@ export function NotificationSoundPlayer() {
   useEffect(() => {
     // Create audio element for notification sound
     audioRef.current = new Audio("/sounds/notification.mp3")
-    audioRef.current.volume = 0.7
+    audioRef.current.volume = 0.9
 
     // Listen for messages from service worker
     const handleMessage = (event: MessageEvent) => {
