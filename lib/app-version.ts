@@ -1,6 +1,6 @@
 // App version and feature tracking
-export const APP_VERSION = "1.2.0"
-export const CACHE_VERSION = "genamplify-v1.2.0"
+export const APP_VERSION = "1.3.0"
+export const CACHE_VERSION = "face-attendance-v1.3.0"
 
 export interface FeatureUpdate {
   version: string
@@ -10,6 +10,21 @@ export interface FeatureUpdate {
 
 // Feature changelog - update this when adding new features
 export const FEATURE_UPDATES: FeatureUpdate[] = [
+  {
+    version: "1.3.0",
+    date: "2025-01-15",
+    features: [
+      "Rebranded to Face Attendance with new logo",
+      "Custom date range export for attendance reports",
+      "Role-based export restrictions (SuperAdmin can export all institutions)",
+      "Advanced attendance filters (person type, status, date presets)",
+      "Improved mobile menu with scrolling and version display",
+      "Updated navigation labels (Live Attendance, Attendance Reports)",
+      "SuperAdmin access to Settings",
+      "Optimized app loading speed with lazy loading",
+      "Enhanced PWA caching for faster performance",
+    ],
+  },
   {
     version: "1.2.0",
     date: "2024-01-15",
