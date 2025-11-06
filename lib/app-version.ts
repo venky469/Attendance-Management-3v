@@ -11,6 +11,15 @@ export interface FeatureUpdate {
 // Feature changelog - update this when adding new features
 export const FEATURE_UPDATES: FeatureUpdate[] = [
   {
+    version: "1.3.1",
+    date: "2025-11-06",
+    features: [
+      
+      "Optimized app loading speed with lazy loading"
+     
+    ],
+  },
+  {
     version: "1.3.0",
     date: "2025-01-15",
     features: [
