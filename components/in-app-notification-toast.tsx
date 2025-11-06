@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { X, Bell } from "lucide-react"
 import { Card } from "@/components/ui/card"
 
@@ -14,13 +14,37 @@ interface Notification {
 
 export function InAppNotificationToast() {
   const [notifications, setNotifications] = useState<Notification[]>([])
-  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const lastCheckRef = useRef<number>(Date.now())
 
   useEffect(() => {
-    // Create audio element
     const audio = new Audio("/sounds/notification.mp3")
-    audio.volume = 0.7
-    setAudioElement(audio)
+    audio.volume = 0.5
+    audio.preload = "auto"
+
+    audio.addEventListener("canplaythrough", () => {
+      console.log("[v0] Toast audio loaded successfully")
+    })
+
+    audio.addEventListener("error", (e) => {
+      console.error("[v0] Toast audio loading error:", e)
+    })
+
+    audioRef.current = audio
+
+    const enableAudio = () => {
+      if (audioRef.current) {
+        audioRef.current
+          .play()
+          .then(() => {
+            audioRef.current!.pause()
+            audioRef.current!.currentTime = 0
+            console.log("[v0] Toast audio enabled")
+          })
+          .catch(() => {})
+      }
+    }
+    document.addEventListener("click", enableAudio, { once: true })
 
     // Poll for new notifications every 30 seconds
     const pollInterval = setInterval(checkForNewNotifications, 30000)
@@ -30,6 +54,7 @@ export function InAppNotificationToast() {
 
     return () => {
       clearInterval(pollInterval)
+      document.removeEventListener("click", enableAudio)
     }
   }, [])
 
@@ -39,16 +64,24 @@ export function InAppNotificationToast() {
       if (response.ok) {
         const data = await response.json()
         if (data.notifications && data.notifications.length > 0) {
-          // Show new notifications
-          data.notifications.forEach((notif: any) => {
-            showNotification({
-              id: notif.id,
-              title: notif.title || "New Notification",
-              body: notif.message || notif.body,
-              url: notif.url,
-              timestamp: Date.now(),
-            })
+          const newNotifications = data.notifications.filter((notif: any) => {
+            const notifTime = new Date(notif.createdAt || notif.sentAt).getTime()
+            return notifTime > lastCheckRef.current
           })
+
+          if (newNotifications.length > 0) {
+            console.log(`[v0] Found ${newNotifications.length} new notifications`)
+            newNotifications.forEach((notif: any) => {
+              showNotification({
+                id: notif.id || notif._id,
+                title: notif.title || notif.subject || "New Notification",
+                body: notif.message || notif.body,
+                url: notif.url || "/notifications",
+                timestamp: Date.now(),
+              })
+            })
+            lastCheckRef.current = Date.now()
+          }
         }
       }
     } catch (error) {
@@ -57,10 +90,14 @@ export function InAppNotificationToast() {
   }
 
   const showNotification = (notification: Notification) => {
-    // Play sound
-    if (audioElement) {
-      audioElement.currentTime = 0
-      audioElement.play().catch((err) => console.log("[v0] Could not play sound:", err))
+    console.log("[v0] Showing toast notification:", notification.title)
+
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0
+      audioRef.current
+        .play()
+        .then(() => console.log("[v0] Toast sound played"))
+        .catch((err) => console.log("[v0] Toast sound blocked:", err.message))
     }
 
     // Add to notifications list
