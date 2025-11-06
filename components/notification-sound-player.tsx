@@ -1,86 +1,77 @@
-// "use client"
-
-// import { useEffect, useRef } from "react"
-
-// export function NotificationSoundPlayer() {
-//   const audioRef = useRef<HTMLAudioElement | null>(null)
-
-//   useEffect(() => {
-//     // Create audio element for notification sound
-//     audioRef.current = new Audio("/sounds/notification.mp3")
-//     audioRef.current.volume = 0.9
-
-//     // Listen for messages from service worker
-//     const handleMessage = (event: MessageEvent) => {
-//       if (event.data && event.data.type === "PLAY_NOTIFICATION_SOUND") {
-//         playNotificationSound()
-//       }
-//     }
-
-//     navigator.serviceWorker?.addEventListener("message", handleMessage)
-
-//     return () => {
-//       navigator.serviceWorker?.removeEventListener("message", handleMessage)
-//     }
-//   }, [])
-
-//   const playNotificationSound = () => {
-//     if (audioRef.current) {
-//       audioRef.current.currentTime = 0
-//       audioRef.current.play().catch((err) => {
-//         console.log("[v0] Could not play notification sound:", err)
-//       })
-//     }
-//   }
-
-//   return null // This component doesn't render anything
-// }
-
-
-
 "use client"
 
 import { useEffect, useRef } from "react"
-import { realtimeClient } from "@/lib/realtime-client"
 
 export function NotificationSoundPlayer() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {
-    // Create audio element for notification sound
-    audioRef.current = new Audio("/sounds/noti.mp3")
-    audioRef.current.volume = 0.7
+    console.log("[v0] NotificationSoundPlayer mounted")
 
-    const handleNotification = (event: any) => {
-      console.log("[v0] New notification received:", event)
-      playNotificationSound()
-    }
+    audioRef.current = new Audio("/sounds/notification.mp3")
+    audioRef.current.volume = 0.5
+    audioRef.current.preload = "auto"
 
-    // Listen for messages from service worker
+    // Load the audio file immediately
+    audioRef.current.load()
+    console.log("[v0] Audio element created and preloaded")
+
     const handleMessage = (event: MessageEvent) => {
+      console.log("[v0] Service worker message received:", event.data)
       if (event.data && event.data.type === "PLAY_NOTIFICATION_SOUND") {
+        console.log("[v0] Playing notification sound for:", event.data.notification)
         playNotificationSound()
       }
     }
 
-    realtimeClient.on("notification_created", handleNotification)
-
-    navigator.serviceWorker?.addEventListener("message", handleMessage)
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.addEventListener("message", handleMessage)
+      console.log("[v0] Service worker message listener registered")
+    } else {
+      console.warn("[v0] Service worker not supported")
+    }
 
     return () => {
-      realtimeClient.off("notification_created", handleNotification)
-      navigator.serviceWorker?.removeEventListener("message", handleMessage)
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.removeEventListener("message", handleMessage)
+        console.log("[v0] Service worker message listener removed")
+      }
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
     }
   }, [])
 
   const playNotificationSound = () => {
-    if (audioRef.current) {
+    if (!audioRef.current) {
+      console.error("[v0] Audio element not initialized")
+      return
+    }
+
+    try {
+      // Reset to start and play
       audioRef.current.currentTime = 0
-      audioRef.current.play().catch((err) => {
-        console.log("[v0] Could not play notification sound:", err)
-      })
+      const playPromise = audioRef.current.play()
+
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log("[v0] Notification sound played successfully")
+          })
+          .catch((error) => {
+            console.error("[v0] Could not play notification sound:", error)
+            console.error("[v0] Error details:", {
+              name: error.name,
+              message: error.message,
+              code: error.code,
+            })
+          })
+      }
+    } catch (error) {
+      console.error("[v0] Exception while playing sound:", error)
     }
   }
 
-  return null // This component doesn't render anything
+  return null
 }

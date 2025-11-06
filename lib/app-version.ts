@@ -85,7 +85,7 @@
 
 
 // App version and feature tracking
-export const APP_VERSION = "1.5.0"
+export const APP_VERSION = "1.6.0"
 export const CACHE_VERSION = "face-attendance-v1.5.0"
 
 export interface FeatureUpdate {
@@ -97,7 +97,7 @@ export interface FeatureUpdate {
 // Feature changelog - update this when adding new features
 export const FEATURE_UPDATES: FeatureUpdate[] = [
   {
-    version: "1.5.0",
+    version: "1.6.0",
     date: "2025-01-16",
     features: [
       "Real-time notification system with sound alerts",
