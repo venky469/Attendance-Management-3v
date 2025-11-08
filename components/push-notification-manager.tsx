@@ -1,16 +1,229 @@
 
+// // "use client"
+
+// // import { useState, useEffect } from "react"
+// // import { Button } from "@/components/ui/button"
+// // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+// // import { Bell, BellOff } from "lucide-react"
+// // import { useToast } from "@/hooks/use-toast"
+
+// // export function PushNotificationManager() {
+// //   const [isSupported, setIsSupported] = useState(false)
+// //   const [permission, setPermission] = useState<NotificationPermission>("default")
+// //   const [subscription, setSubscription] = useState<PushSubscription | null>(null)
+// //   const { toast } = useToast()
+
+// //   useEffect(() => {
+// //     if ("Notification" in window && "serviceWorker" in navigator) {
+// //       setIsSupported(true)
+// //       setPermission(Notification.permission)
+
+// //       // Check if already subscribed
+// //       navigator.serviceWorker.ready.then((registration) => {
+// //         registration.pushManager.getSubscription().then((sub) => {
+// //           setSubscription(sub)
+// //           if (sub) {
+// //             sendNotificationCountToSW()
+// //           }
+// //         })
+// //       })
+// //     }
+// //   }, [])
+
+// //   const sendNotificationCountToSW = async () => {
+// //     if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+// //       // Get unread count from API
+// //       try {
+// //         const response = await fetch("/api/notifications/count")
+// //         if (response.ok) {
+// //           const data = await response.json()
+// //           navigator.serviceWorker.controller.postMessage({
+// //             type: "SET_NOTIFICATION_COUNT",
+// //             count: data.count || 0,
+// //           })
+// //         }
+// //       } catch (error) {
+// //         console.error("[v0] Error getting notification count:", error)
+// //       }
+// //     }
+// //   }
+
+// //   const requestPermission = async () => {
+// //     try {
+// //       const permission = await Notification.requestPermission()
+// //       setPermission(permission)
+
+// //       if (permission === "granted") {
+// //         await subscribeToPush()
+// //         toast({
+// //           title: "Notifications Enabled",
+// //           description: "You will now receive push notifications for leave requests and updates",
+// //         })
+// //       } else {
+// //         toast({
+// //           title: "Notifications Blocked",
+// //           description: "Please enable notifications in your browser settings",
+// //           variant: "destructive",
+// //         })
+// //       }
+// //     } catch (error) {
+// //       console.error("Error requesting notification permission:", error)
+// //       toast({
+// //         title: "Error",
+// //         description: "Failed to enable notifications",
+// //         variant: "destructive",
+// //       })
+// //     }
+// //   }
+
+// //   const subscribeToPush = async () => {
+// //     try {
+// //       const registration = await navigator.serviceWorker.ready
+
+// //       // Generate VAPID keys on the server or use existing ones
+// //       const response = await fetch("/api/push/vapid-public-key")
+// //       const { publicKey } = await response.json()
+
+// //       const subscription = await registration.pushManager.subscribe({
+// //         userVisibleOnly: true,
+// //         applicationServerKey: urlBase64ToUint8Array(publicKey),
+// //       })
+
+// //       // Send subscription to server
+// //       await fetch("/api/push/subscribe", {
+// //         method: "POST",
+// //         headers: { "Content-Type": "application/json" },
+// //         body: JSON.stringify(subscription),
+// //       })
+
+// //       setSubscription(subscription)
+// //       sendNotificationCountToSW()
+// //     } catch (error) {
+// //       console.error("Error subscribing to push:", error)
+// //     }
+// //   }
+
+// //   const unsubscribeFromPush = async () => {
+// //     try {
+// //       if (subscription) {
+// //         await subscription.unsubscribe()
+
+// //         // Remove subscription from server
+// //         await fetch("/api/push/unsubscribe", {
+// //           method: "POST",
+// //           headers: { "Content-Type": "application/json" },
+// //           body: JSON.stringify(subscription),
+// //         })
+
+// //         if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+// //           navigator.serviceWorker.controller.postMessage({ type: "CLEAR_BADGE" })
+// //         }
+
+// //         setSubscription(null)
+// //         toast({
+// //           title: "Notifications Disabled",
+// //           description: "You will no longer receive push notifications",
+// //         })
+// //       }
+// //     } catch (error) {
+// //       console.error("Error unsubscribing from push:", error)
+// //       toast({
+// //         title: "Error",
+// //         description: "Failed to disable notifications",
+// //         variant: "destructive",
+// //       })
+// //     }
+// //   }
+
+// //   if (!isSupported) {
+// //     return (
+// //       <Card>
+// //         <CardHeader>
+// //           <CardTitle>Push Notifications</CardTitle>
+// //           <CardDescription>Not supported in this browser</CardDescription>
+// //         </CardHeader>
+// //       </Card>
+// //     )
+// //   }
+
+// //   return (
+// //     <Card>
+// //       <CardHeader>
+// //         <CardTitle>Push Notifications</CardTitle>
+// //         <CardDescription>
+// //           Receive real-time notifications with sound for leave requests, approvals, and important updates. Badge count
+// //           shows on app icon when installed on mobile.
+// //         </CardDescription>
+// //       </CardHeader>
+// //       <CardContent>
+// //         <div className="space-y-4">
+// //           <div className="flex items-center justify-between">
+// //             <div className="flex items-center gap-2">
+// //               {subscription ? (
+// //                 <Bell className="w-5 h-5 text-green-600" />
+// //               ) : (
+// //                 <BellOff className="w-5 h-5 text-gray-400" />
+// //               )}
+// //               <span className="text-sm font-medium">Status: {subscription ? "Enabled" : "Disabled"}</span>
+// //             </div>
+// //             {permission === "granted" && subscription ? (
+// //               <Button variant="outline" size="sm" onClick={unsubscribeFromPush}>
+// //                 Disable
+// //               </Button>
+// //             ) : (
+// //               <Button size="sm" onClick={requestPermission} disabled={permission === "denied"}>
+// //                 Enable Notifications
+// //               </Button>
+// //             )}
+// //           </div>
+// //           {permission === "denied" && (
+// //             <p className="text-xs text-muted-foreground">
+// //               Notifications are blocked. Please enable them in your browser settings.
+// //             </p>
+// //           )}
+// //           {subscription && (
+// //             <div className="text-xs text-muted-foreground space-y-1">
+// //               <p>✓ Push notifications enabled</p>
+// //               <p>✓ Sound alerts enabled</p>
+// //               <p>✓ Badge count on app icon (when installed)</p>
+// //             </div>
+// //           )}
+// //         </div>
+// //       </CardContent>
+// //     </Card>
+// //   )
+// // }
+
+// // // Helper function to convert VAPID key
+// // function urlBase64ToUint8Array(base64String: string) {
+// //   const padding = "=".repeat((4 - (base64String.length % 4)) % 4)
+// //   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/")
+// //   const rawData = window.atob(base64)
+// //   const outputArray = new Uint8Array(rawData.length)
+// //   for (let i = 0; i < rawData.length; ++i) {
+// //     outputArray[i] = rawData.charCodeAt(i)
+// //   }
+// //   return outputArray
+// // }
+
+// // export default PushNotificationManager
+
+
+
 // "use client"
 
 // import { useState, useEffect } from "react"
 // import { Button } from "@/components/ui/button"
 // import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-// import { Bell, BellOff } from "lucide-react"
+// import { Bell, BellOff, AlertCircle } from "lucide-react"
 // import { useToast } from "@/hooks/use-toast"
 
 // export function PushNotificationManager() {
 //   const [isSupported, setIsSupported] = useState(false)
 //   const [permission, setPermission] = useState<NotificationPermission>("default")
 //   const [subscription, setSubscription] = useState<PushSubscription | null>(null)
+//   const [isLoading, setIsLoading] = useState(false)
+//   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 //   const { toast } = useToast()
 
 //   useEffect(() => {
@@ -19,20 +232,24 @@
 //       setPermission(Notification.permission)
 
 //       // Check if already subscribed
-//       navigator.serviceWorker.ready.then((registration) => {
-//         registration.pushManager.getSubscription().then((sub) => {
-//           setSubscription(sub)
+//       navigator.serviceWorker.ready
+//         .then((registration) => {
+//           return registration.pushManager.getSubscription()
+//         })
+//         .then((sub) => {
 //           if (sub) {
+//             setSubscription(sub)
 //             sendNotificationCountToSW()
 //           }
 //         })
-//       })
+//         .catch((err) => {
+//           console.error("[v0] Error checking subscription:", err)
+//         })
 //     }
 //   }, [])
 
 //   const sendNotificationCountToSW = async () => {
 //     if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
-//       // Get unread count from API
 //       try {
 //         const response = await fetch("/api/notifications/count")
 //         if (response.ok) {
@@ -49,30 +266,33 @@
 //   }
 
 //   const requestPermission = async () => {
+//     setIsLoading(true)
+//     setErrorMessage(null)
+
 //     try {
 //       const permission = await Notification.requestPermission()
 //       setPermission(permission)
 
 //       if (permission === "granted") {
 //         await subscribeToPush()
-//         toast({
-//           title: "Notifications Enabled",
-//           description: "You will now receive push notifications for leave requests and updates",
-//         })
-//       } else {
+//       } else if (permission === "denied") {
+//         setErrorMessage("Notifications are blocked. Please enable them in your browser settings.")
 //         toast({
 //           title: "Notifications Blocked",
 //           description: "Please enable notifications in your browser settings",
 //           variant: "destructive",
 //         })
 //       }
-//     } catch (error) {
-//       console.error("Error requesting notification permission:", error)
+//     } catch (error: any) {
+//       console.error("[v0] Error requesting notification permission:", error)
+//       setErrorMessage(error?.message || "Failed to enable notifications")
 //       toast({
 //         title: "Error",
 //         description: "Failed to enable notifications",
 //         variant: "destructive",
 //       })
+//     } finally {
+//       setIsLoading(false)
 //     }
 //   }
 
@@ -80,9 +300,19 @@
 //     try {
 //       const registration = await navigator.serviceWorker.ready
 
-//       // Generate VAPID keys on the server or use existing ones
+//       // Try to get VAPID public key
 //       const response = await fetch("/api/push/vapid-public-key")
+
+//       if (!response.ok) {
+//         const errorData = await response.json()
+//         throw new Error(errorData.error || "Failed to get VAPID key")
+//       }
+
 //       const { publicKey } = await response.json()
+
+//       if (!publicKey) {
+//         throw new Error("VAPID public key is not configured. Please add VAPID keys to environment variables.")
+//       }
 
 //       const subscription = await registration.pushManager.subscribe({
 //         userVisibleOnly: true,
@@ -90,20 +320,43 @@
 //       })
 
 //       // Send subscription to server
-//       await fetch("/api/push/subscribe", {
+//       const subscribeResponse = await fetch("/api/push/subscribe", {
 //         method: "POST",
 //         headers: { "Content-Type": "application/json" },
 //         body: JSON.stringify(subscription),
 //       })
 
+//       if (!subscribeResponse.ok) {
+//         throw new Error("Failed to save subscription on server")
+//       }
+
 //       setSubscription(subscription)
+//       setErrorMessage(null)
 //       sendNotificationCountToSW()
-//     } catch (error) {
-//       console.error("Error subscribing to push:", error)
+
+//       toast({
+//         title: "Notifications Enabled",
+//         description: "You will now receive push notifications for leave requests and updates",
+//       })
+//     } catch (error: any) {
+//       console.error("[v0] Error subscribing to push:", error)
+//       const message = error?.message || "Registration failed - push service error"
+//       setErrorMessage(message)
+
+//       toast({
+//         title: "Registration Failed",
+//         description: message.includes("VAPID")
+//           ? "Push notifications require VAPID keys. Please contact your administrator."
+//           : "Failed to register for push notifications. Please try again.",
+//         variant: "destructive",
+//       })
 //     }
 //   }
 
 //   const unsubscribeFromPush = async () => {
+//     setIsLoading(true)
+//     setErrorMessage(null)
+
 //     try {
 //       if (subscription) {
 //         await subscription.unsubscribe()
@@ -125,13 +378,16 @@
 //           description: "You will no longer receive push notifications",
 //         })
 //       }
-//     } catch (error) {
-//       console.error("Error unsubscribing from push:", error)
+//     } catch (error: any) {
+//       console.error("[v0] Error unsubscribing from push:", error)
+//       setErrorMessage(error?.message || "Failed to disable notifications")
 //       toast({
 //         title: "Error",
 //         description: "Failed to disable notifications",
 //         variant: "destructive",
 //       })
+//     } finally {
+//       setIsLoading(false)
 //     }
 //   }
 
@@ -142,6 +398,11 @@
 //           <CardTitle>Push Notifications</CardTitle>
 //           <CardDescription>Not supported in this browser</CardDescription>
 //         </CardHeader>
+//         <CardContent>
+//           <p className="text-sm text-muted-foreground">
+//             Push notifications require a modern browser with service worker support.
+//           </p>
+//         </CardContent>
 //       </Card>
 //     )
 //   }
@@ -167,25 +428,47 @@
 //               <span className="text-sm font-medium">Status: {subscription ? "Enabled" : "Disabled"}</span>
 //             </div>
 //             {permission === "granted" && subscription ? (
-//               <Button variant="outline" size="sm" onClick={unsubscribeFromPush}>
-//                 Disable
+//               <Button variant="outline" size="sm" onClick={unsubscribeFromPush} disabled={isLoading}>
+//                 {isLoading ? "Disabling..." : "Disable"}
 //               </Button>
 //             ) : (
-//               <Button size="sm" onClick={requestPermission} disabled={permission === "denied"}>
-//                 Enable Notifications
+//               <Button size="sm" onClick={requestPermission} disabled={permission === "denied" || isLoading}>
+//                 {isLoading ? "Enabling..." : "Enable Notifications"}
 //               </Button>
 //             )}
 //           </div>
-//           {permission === "denied" && (
-//             <p className="text-xs text-muted-foreground">
-//               Notifications are blocked. Please enable them in your browser settings.
-//             </p>
+
+//           {errorMessage && (
+//             <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-md">
+//               <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+//               <div className="space-y-1 flex-1">
+//                 <p className="text-xs font-medium text-red-800">Error: {errorMessage}</p>
+//                 {errorMessage.includes("VAPID") && (
+//                   <p className="text-xs text-red-700">
+//                     To enable push notifications, an administrator needs to configure VAPID keys. See
+//                     SETUP_NOTIFICATIONS.md for instructions.
+//                   </p>
+//                 )}
+//               </div>
+//             </div>
 //           )}
-//           {subscription && (
-//             <div className="text-xs text-muted-foreground space-y-1">
-//               <p>✓ Push notifications enabled</p>
-//               <p>✓ Sound alerts enabled</p>
-//               <p>✓ Badge count on app icon (when installed)</p>
+
+//           {permission === "denied" && (
+//             <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+//               <p className="text-xs text-amber-800">
+//                 <strong>Notifications are blocked.</strong> Please enable them in your browser settings to receive
+//                 updates.
+//               </p>
+//             </div>
+//           )}
+
+//           {subscription && !errorMessage && (
+//             <div className="text-xs text-muted-foreground space-y-1 p-3 bg-green-50 border border-green-200 rounded-md">
+//               <p className="font-medium text-green-800 mb-2">✓ Push notifications are active</p>
+//               <p>• Real-time alerts for leave requests</p>
+//               <p>• Sound notifications for approvals/rejections</p>
+//               <p>• Badge count on app icon (when installed)</p>
+//               <p>• Works even when app is closed</p>
 //             </div>
 //           )}
 //         </div>
@@ -210,11 +493,13 @@
 
 
 
+
 "use client"
 
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 import { Bell, BellOff, AlertCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
@@ -231,7 +516,6 @@ export function PushNotificationManager() {
       setIsSupported(true)
       setPermission(Notification.permission)
 
-      // Check if already subscribed
       navigator.serviceWorker.ready
         .then((registration) => {
           return registration.pushManager.getSubscription()
@@ -240,6 +524,16 @@ export function PushNotificationManager() {
           if (sub) {
             setSubscription(sub)
             sendNotificationCountToSW()
+          } else {
+            // Auto-request permission on first visit
+            const hasAskedBefore = localStorage.getItem("push-notification-asked")
+            if (!hasAskedBefore && Notification.permission === "default") {
+              localStorage.setItem("push-notification-asked", "true")
+              // Auto-request after a short delay
+              setTimeout(() => {
+                requestPermission()
+              }, 2000)
+            }
           }
         })
         .catch((err) => {
@@ -391,6 +685,18 @@ export function PushNotificationManager() {
     }
   }
 
+  const handleToggle = async (checked: boolean) => {
+    if (checked) {
+      if (permission === "granted" && !subscription) {
+        await subscribeToPush()
+      } else if (permission !== "granted") {
+        await requestPermission()
+      }
+    } else {
+      await unsubscribeFromPush()
+    }
+  }
+
   if (!isSupported) {
     return (
       <Card>
@@ -419,23 +725,25 @@ export function PushNotificationManager() {
       <CardContent>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {subscription ? (
                 <Bell className="w-5 h-5 text-green-600" />
               ) : (
                 <BellOff className="w-5 h-5 text-gray-400" />
               )}
-              <span className="text-sm font-medium">Status: {subscription ? "Enabled" : "Disabled"}</span>
+              <div>
+                <Label htmlFor="push-notifications" className="text-base font-medium cursor-pointer">
+                  Enable Notifications
+                </Label>
+                <p className="text-sm text-muted-foreground">Status: {subscription ? "Enabled" : "Disabled"}</p>
+              </div>
             </div>
-            {permission === "granted" && subscription ? (
-              <Button variant="outline" size="sm" onClick={unsubscribeFromPush} disabled={isLoading}>
-                {isLoading ? "Disabling..." : "Disable"}
-              </Button>
-            ) : (
-              <Button size="sm" onClick={requestPermission} disabled={permission === "denied" || isLoading}>
-                {isLoading ? "Enabling..." : "Enable Notifications"}
-              </Button>
-            )}
+            <Switch
+              id="push-notifications"
+              checked={!!subscription}
+              onCheckedChange={handleToggle}
+              disabled={permission === "denied" || isLoading}
+            />
           </div>
 
           {errorMessage && (
