@@ -1,35 +1,3 @@
-// import type * as FaceAPI from "face-api.js"
-
-// let faceApiInstance: typeof FaceAPI | null = null
-// let modelsLoaded = false
-
-// export async function loadFaceApi(): Promise<typeof FaceAPI> {
-//   if (faceApiInstance) return faceApiInstance
-
-//   const faceapi = await import("face-api.js")
-//   faceApiInstance = faceapi
-//   return faceapi
-// }
-
-// export async function loadFaceApiModels(): Promise<typeof FaceAPI> {
-//   const faceapi = await loadFaceApi()
-
-//   if (modelsLoaded) return faceapi
-
-// //   const MODEL_URL = "/models"
-// const MODEL_URL = "https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights"
-
-//   await Promise.all([
-//     faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-//     faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-//     faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-//   ])
-
-//   modelsLoaded = true
-//   return faceapi
-// }
-
-
 
 import type * as FaceAPI from "face-api.js"
 
