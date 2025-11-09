@@ -84,8 +84,8 @@
 // // // // // // // // // // //               JSON.stringify({
 // // // // // // // // // // //                 title: title || "Face Attendance",
 // // // // // // // // // // //                 body: message,
-// // // // // // // // // // //                 icon: "/logo3.jpg",
-// // // // // // // // // // //                 badge: "/logo3.jpg",
+// // // // // // // // // // //                 icon: "/logo3.png",
+// // // // // // // // // // //                 badge: "/logo3.png",
 // // // // // // // // // // //                 data: {
 // // // // // // // // // // //                   url: "/notifications",
 // // // // // // // // // // //                   notificationId: notification._id.toString(),
@@ -223,8 +223,8 @@
 // // // // // // // // // //               JSON.stringify({
 // // // // // // // // // //                 title: title || "Face Attendance",
 // // // // // // // // // //                 body: message,
-// // // // // // // // // //                 icon: "/logo3.jpg",
-// // // // // // // // // //                 badge: "/logo3.jpg",
+// // // // // // // // // //                 icon: "/logo3.png",
+// // // // // // // // // //                 badge: "/logo3.png",
 // // // // // // // // // //                 sound: "/notification-sound.mp3",
 // // // // // // // // // //                 vibrate: [200, 100, 200],
 // // // // // // // // // //                 requireInteraction: true,
@@ -376,8 +376,8 @@
 // // // // // // // // //               JSON.stringify({
 // // // // // // // // //                 title: title || "Employee Management System",
 // // // // // // // // //                 body: message,
-// // // // // // // // //                 icon: "/logo3.jpg",
-// // // // // // // // //                 badge: "/logo3.jpg",
+// // // // // // // // //                 icon: "/logo3.png",
+// // // // // // // // //                 badge: "/logo3.png",
 // // // // // // // // //                 sound: "/notification.mp3",
 // // // // // // // // //                 vibrate: [200, 100, 200, 100, 200],
 // // // // // // // // //                 requireInteraction: true,
@@ -526,8 +526,8 @@
 // // // // // // // //               JSON.stringify({
 // // // // // // // //                 title: title || "Employee Management System",
 // // // // // // // //                 body: message,
-// // // // // // // //                 icon: "/logo3.jpg",
-// // // // // // // //                 badge: "/logo3.jpg",
+// // // // // // // //                 icon: "/logo3.png",
+// // // // // // // //                 badge: "/logo3.png",
 // // // // // // // //                 sound: "/notification.mp3",
 // // // // // // // //                 vibrate: [200, 100, 200, 100, 200],
 // // // // // // // //                 requireInteraction: true,
@@ -710,8 +710,8 @@
 // // // // // // //             JSON.stringify({
 // // // // // // //               title: title || "Employee Management System",
 // // // // // // //               body: message,
-// // // // // // //               icon: "/logo3.jpg",
-// // // // // // //               badge: "/logo3.jpg",
+// // // // // // //               icon: "/logo3.png",
+// // // // // // //               badge: "/logo3.png",
 // // // // // // //               sound: "/notification-sound.mp3",
 // // // // // // //               vibrate: [200, 100, 200, 100, 200],
 // // // // // // //               requireInteraction: true,
@@ -897,8 +897,8 @@
 // // // // // //             JSON.stringify({
 // // // // // //               title: title || "Employee Management System",
 // // // // // //               body: message,
-// // // // // //               icon: "/logo3.jpg",
-// // // // // //               badge: "/logo3.jpg",
+// // // // // //               icon: "/logo3.png",
+// // // // // //               badge: "/logo3.png",
 // // // // // //               vibrate: [200, 100, 200, 100, 200],
 // // // // // //               requireInteraction: false,
 // // // // // //               silent: false, // Browser will play system notification sound
@@ -1074,8 +1074,8 @@
 // // // // //             JSON.stringify({
 // // // // //               title: title || "Employee Management System",
 // // // // //               body: message,
-// // // // //               icon: "/logo3.jpg",
-// // // // //               badge: "/logo3.jpg",
+// // // // //               icon: "/logo3.png",
+// // // // //               badge: "/logo3.png",
 // // // // //               vibrate: [200, 100, 200, 100, 200],
 // // // // //               requireInteraction: false,
 // // // // //               silent: false, // Browser will play system notification sound
@@ -1272,8 +1272,8 @@
 // // // //             JSON.stringify({
 // // // //               title: title || "Employee Management System",
 // // // //               body: message,
-// // // //               icon: "/logo3.jpg",
-// // // //               badge: "/logo3.jpg",
+// // // //               icon: "/logo3.png",
+// // // //               badge: "/logo3.png",
 // // // //               vibrate: [200, 100, 200, 100, 200],
 // // // //               requireInteraction: false,
 // // // //               silent: false, // Browser will play system notification sound
@@ -1434,8 +1434,8 @@
 // // //             JSON.stringify({
 // // //               title: title || "Employee Management System",
 // // //               body: message,
-// // //               icon: "/logo3.jpg",
-// // //               badge: "/logo3.jpg",
+// // //               icon: "/logo3.png",
+// // //               badge: "/logo3.png",
 // // //               vibrate: [200, 100, 200, 100, 200],
 // // //               requireInteraction: false,
 // // //               silent: false,
@@ -1597,8 +1597,8 @@
 // //           const payload = JSON.stringify({
 // //             title: title || "Employee Management System",
 // //             body: message,
-// //             icon: "/logo3.jpg",
-// //             badge: "/logo3.jpg",
+// //             icon: "/logo3.png",
+// //             badge: "/logo3.png",
 // //             vibrate: [200, 100, 200, 100, 200],
 // //             requireInteraction: false,
 // //             silent: false,
@@ -1777,8 +1777,8 @@
 //           const payload = JSON.stringify({
 //             title: title || "Employee Management System",
 //             body: message,
-//             icon: "/logo3.jpg",
-//             badge: "/logo3.jpg",
+//             icon: "/logo3.png",
+//             badge: "/logo3.png",
 //             vibrate: [200, 100, 200, 100, 200],
 //             requireInteraction: false,
 //             silent: false,
@@ -1957,8 +1957,8 @@ export async function GET(request: NextRequest) {
           const payload = JSON.stringify({
             title: title || "Employee Management System",
             body: message,
-            icon: `${PRODUCTION_URL}/logo3.jpg`,
-            badge: `${PRODUCTION_URL}/logo3.jpg`,
+            icon: `${PRODUCTION_URL}/logo3.png`,
+            badge: `${PRODUCTION_URL}/logo3.png`,
             sound: `${PRODUCTION_URL}/notification-sound.mp3`,
             vibrate: [200, 100, 200, 100, 200],
             requireInteraction: false,

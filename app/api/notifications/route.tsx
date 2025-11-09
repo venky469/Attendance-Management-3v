@@ -548,7 +548,7 @@ export async function POST(req: NextRequest) {
         `
 
         await transporter.sendMail({
-          from: process.env.SMTP_USER,
+          from: `${institutionName || "Face Attendance"} <faceattendance@noreply.com>`,
           to: "undisclosed-recipients:;",
           bcc,
           subject: emailSubject,

@@ -2,7 +2,7 @@
 // // // // // const CACHE_NAME = "face-attendance-v1.4.0"
 // // // // // const OFFLINE_URL = "/offline"
 
-// // // // // const STATIC_ASSETS = ["/", "/offline", "/login", "/manifest.json", "/logo3.jpg", "/images/logo.jpg"]
+// // // // // const STATIC_ASSETS = ["/", "/offline", "/login", "/manifest.json", "/logo3.png", "/images/logo.jpg"]
 
 // // // // // const CACHE_BLACKLIST = ["/api/", "/models/", "cloudinary.com"]
 
@@ -170,8 +170,8 @@
 
 // // // // //   const options = {
 // // // // //     body: data.body || "You have a new notification",
-// // // // //     icon: "/logo3.jpg",
-// // // // //     badge: "/logo3.jpg",
+// // // // //     icon: "/logo3.png",
+// // // // //     badge: "/logo3.png",
 // // // // //     vibrate: [200, 100, 200],
 // // // // //     data: data.data || {},
 // // // // //     actions: data.actions || [],
@@ -234,7 +234,7 @@
 // // // // const CACHE_NAME = "face-attendance-v1.4.0"
 // // // // const OFFLINE_URL = "/offline"
 
-// // // // const STATIC_ASSETS = ["/", "/offline", "/login", "/manifest.json", "/logo3.jpg", "/images/logo.jpg"]
+// // // // const STATIC_ASSETS = ["/", "/offline", "/login", "/manifest.json", "/logo3.png", "/images/logo.jpg"]
 
 // // // // const CACHE_BLACKLIST = ["/api/", "/models/", "cloudinary.com"]
 
@@ -408,8 +408,8 @@
 
 // // // //   const options = {
 // // // //     body: data.body || "You have a new notification",
-// // // //     icon: "/logo3.jpg",
-// // // //     badge: "/logo3.jpg",
+// // // //     icon: "/logo3.png",
+// // // //     badge: "/logo3.png",
 // // // //     vibrate: [200, 100, 200],
 // // // //     data: data.data || {},
 // // // //     actions: data.actions || [],
@@ -472,7 +472,7 @@
 // // // const CACHE_NAME = "face-attendance-v1.4.0"
 // // // const OFFLINE_URL = "/offline"
 
-// // // const STATIC_ASSETS = ["/", "/offline", "/login", "/manifest.json", "/logo3.jpg", "/images/logo.jpg"]
+// // // const STATIC_ASSETS = ["/", "/offline", "/login", "/manifest.json", "/logo3.png", "/images/logo.jpg"]
 
 // // // const CACHE_BLACKLIST = ["/api/", "/models/", "cloudinary.com"]
 
@@ -646,8 +646,8 @@
 
 // // //   const options = {
 // // //     body: data.body || "You have a new notification",
-// // //     icon: "/logo3.jpg",
-// // //     badge: "/logo3.jpg",
+// // //     icon: "/logo3.png",
+// // //     badge: "/logo3.png",
 // // //     vibrate: [200, 100, 200, 100, 200],
 // // //     data: data.data || {},
 // // //     actions: data.actions || [],
@@ -714,7 +714,7 @@
 // // const CACHE_NAME = "face-attendance-v1.4.0"
 // // const OFFLINE_URL = "/offline"
 
-// // const STATIC_ASSETS = ["/", "/offline", "/login", "/manifest.json", "/logo3.jpg", "/images/logo.jpg"]
+// // const STATIC_ASSETS = ["/", "/offline", "/login", "/manifest.json", "/logo3.png", "/images/logo.jpg"]
 
 // // const CACHE_BLACKLIST = ["/api/", "/models/", "cloudinary.com"]
 
@@ -888,8 +888,8 @@
 
 // //   const options = {
 // //     body: data.body || "You have a new notification",
-// //     icon: data.icon || "/logo3.jpg",
-// //     badge: data.badge || "/logo3.jpg",
+// //     icon: data.icon || "/logo3.png",
+// //     badge: data.badge || "/logo3.png",
 // //     vibrate: data.vibrate || [200, 100, 200, 100, 200],
 // //     data: data.data || {},
 // //     actions: data.actions || [],
@@ -957,7 +957,7 @@
 // const CACHE_NAME = "face-attendance-v1.4.0"
 // const OFFLINE_URL = "/offline"
 
-// const STATIC_ASSETS = ["/", "/offline", "/login", "/manifest.json", "/logo3.jpg", "/images/logo.jpg"]
+// const STATIC_ASSETS = ["/", "/offline", "/login", "/manifest.json", "/logo3.png", "/images/logo.jpg"]
 
 // const CACHE_BLACKLIST = ["/api/cron/", "/api/push/", "/api/", "/models/", "cloudinary.com"]
 
@@ -1136,8 +1136,8 @@
 
 //   const options = {
 //     body: data.body || "You have a new notification",
-//     icon: data.icon || "/logo3.jpg",
-//     badge: data.badge || "/logo3.jpg",
+//     icon: data.icon || "/logo3.png",
+//     badge: data.badge || "/logo3.png",
 //     vibrate: data.vibrate || [200, 100, 200, 100, 200],
 //     data: data.data || {},
 //     actions: data.actions || [],
@@ -1204,7 +1204,7 @@
 const CACHE_NAME = "face-attendance-v1.4.0"
 const OFFLINE_URL = "/offline"
 
-const STATIC_ASSETS = ["/", "/offline", "/login", "/manifest.json", "/logo3.jpg", "/images/logo.jpg"]
+const STATIC_ASSETS = ["/", "/offline", "/login", "/manifest.json", "/logo3.png", "/images/logo.jpg"]
 
 const CACHE_BLACKLIST = ["/api/cron/", "/api/push/", "/api/", "/models/", "cloudinary.com"]
 
@@ -1384,8 +1384,8 @@ self.addEventListener("push", (event) => {
 
   const options = {
     body: data.body || "You have a new notification",
-    icon: data.icon || "/logo3.jpg",
-    badge: data.badge || "/logo3.jpg",
+    icon: data.icon || "/logo3.png",
+    badge: data.badge || "/logo3.png",
     vibrate: data.vibrate || [200, 100, 200, 100, 200],
     data: { ...data.data, soundUrl }, // Add soundUrl to notification data
     actions: data.actions || [],
