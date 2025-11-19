@@ -1,4 +1,3 @@
-
 "use client"
 
 import useSWR from "swr"
@@ -8,22 +7,23 @@ import type { Department, Role, Shift, AttendanceRecord } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PersonDetailsModal } from "@/components/person-details-modal"
-import { User, Users, UserCheck, UserX, Clock, AlertCircle, CheckCircle, Wifi, WifiOff, Trash2 } from "lucide-react"
+import { User, Users, UserCheck, UserX, Clock, AlertCircle, CheckCircle, Wifi, WifiOff, Trash2 } from 'lucide-react'
 import { useMemo, useState, useEffect } from "react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { realtimeClient } from "@/lib/realtime-client"
-import { getStoredUser } from "@/lib/auth" // import user helper
+import { getStoredUser } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ModernLoader } from "@/components/modern-loader"
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
 export default function AttendancePage() {
   const [filters, setFilters] = useState<AttendanceFiltersState>({
-    date: new Date().toISOString().slice(0, 10), // Default to today
-    status: "all", // Added default status filter
-    personType: "all", // Added default personType filter
+    date: new Date().toISOString().slice(0, 10),
+    status: "all",
+    personType: "all",
   })
   const [selectedPerson, setSelectedPerson] = useState<{
     personId: string
@@ -37,9 +37,9 @@ export default function AttendancePage() {
   const [showNotMarkedModal, setShowNotMarkedModal] = useState(false)
   const [isConnected, setIsConnected] = useState(false)
   const [realtimeUpdates, setRealtimeUpdates] = useState(0)
-  const [currentUser, setCurrentUser] = useState<any>(null) // track current user
+  const [currentUser, setCurrentUser] = useState<any>(null)
   const isStudent = currentUser?.role === "Student"
-  const [deletingId, setDeletingId] = useState<string | null>(null) // track deleting state
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -58,7 +58,6 @@ export default function AttendancePage() {
 
     function onStatsUpdate(stats: any) {
       console.log("[v0] Real-time attendance stats:", stats)
-      // Refresh data when stats update
       mutate()
       mutateNotMarked()
     }
@@ -76,12 +75,10 @@ export default function AttendancePage() {
       }
     }
 
-    // Set up event listeners
     realtimeClient.on("attendance_update", onAttendanceUpdate)
     realtimeClient.on("stats_update", onStatsUpdate)
     realtimeClient.on("auto_mark_complete", onAutoMarkComplete)
 
-    // Connect to real-time updates
     realtimeClient.connect()
     setIsConnected(true)
     console.log("[v0] Real-time client connected to attendance page")
@@ -194,7 +191,6 @@ export default function AttendancePage() {
   const roles = data?.roles ?? []
   const shifts = data?.shifts ?? []
   const totalCounts = data?.totalCounts ?? { totalPeople: 0, present: 0, absent: 0, late: 0 }
-
   const notMarkedPeople = notMarkedData?.notMarkedPeople ?? []
 
   const counts = useMemo(
@@ -205,6 +201,10 @@ export default function AttendancePage() {
     }),
     [records],
   )
+
+  if (!data) {
+    return <ModernLoader message="Loading attendance data..." />
+  }
 
   async function mark(personId: string, personType: "staff" | "student", status: "present" | "absent" | "late") {
     const body = { personId, personType, status, date: filters.date }

@@ -1,5 +1,5 @@
 import { ModernLoader } from '@/components/modern-loader'
 
 export default function Loading() {
-  return <ModernLoader message="Initializing Face ID System" />
+  return <ModernLoader message="Loading Privacy Policy" />
 }
