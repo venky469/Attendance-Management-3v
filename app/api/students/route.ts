@@ -1,13 +1,15 @@
 
-
 import type { NextRequest } from "next/server"
 import { getDb, hashPassword, generateStudentRollNumber } from "@/lib/mongo"
 import { sendWelcomeEmail, sendUpdateNotificationEmail } from "@/lib/email"
 import { DEPARTMENTS, ROLES, SHIFTS, CLASS_LEVELS } from "@/lib/constants"
 import { ObjectId } from "mongodb"
 import { deleteCloudinaryImage } from "@/lib/cloudinary"
+import { withCache, apiCache } from "@/lib/api-cache"
+import { perfMonitor } from "@/lib/performance-monitor"
 
 export async function POST(req: NextRequest) {
+  const endTimer = perfMonitor.start("api-students-post")
   const db = await getDb()
   const body = await req.json()
   const now = new Date().toISOString()
@@ -101,7 +103,7 @@ export async function POST(req: NextRequest) {
     if (body.password && body.email) {
       const emailSent = await sendWelcomeEmail({
         to: body.email,
-        subject: `Welcome to ${body.institutionName} - Your Student Account Details`,
+        subject: `Welcome to GenAmplify - Your Student Account Details`,
         name: body.name,
         code: rollNumber,
         shift: body.shift,
@@ -115,6 +117,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    apiCache.invalidatePattern("^students:")
+
+    endTimer()
     return Response.json({
       success: true,
       message: "Student created successfully",
@@ -122,37 +127,61 @@ export async function POST(req: NextRequest) {
       item: normalized, // include full created item (branch, branchClass, dates, etc.)
     })
   } catch (error) {
+    endTimer()
     console.error("[students] Failed to create student:", error)
     return new Response("Failed to create student", { status: 500 })
   }
 }
 
 export async function GET(req: NextRequest) {
-  const db = await getDb()
-  const { searchParams } = new URL(req.url)
-  const institutionName = searchParams.get("institutionName")
-  const filter: any = {}
-  if (institutionName) filter.institutionName = institutionName
+  const endTimer = perfMonitor.start("api-students-get")
 
-  const items = await db.collection("students").find(filter).toArray()
-  const normalized = items.map((s) => ({ ...s, id: s._id?.toString() })).map(({ _id, ...rest }) => rest)
-  return Response.json({
-    items: normalized,
-    departments: DEPARTMENTS,
-    roles: ROLES,
-    shifts: SHIFTS,
-    classLevels: CLASS_LEVELS,
-  })
+  try {
+    const { searchParams } = new URL(req.url)
+    const institutionName = searchParams.get("institutionName")
+
+    const cacheKey = `students:${institutionName || "all"}`
+
+    const result = await withCache(
+      cacheKey,
+      async () => {
+        const db = await getDb()
+        const filter: any = {}
+        if (institutionName) filter.institutionName = institutionName
+
+        const items = await db.collection("students").find(filter).toArray()
+        const normalized = items.map((s) => ({ ...s, id: s._id?.toString() })).map(({ _id, ...rest }) => rest)
+
+        return {
+          items: normalized,
+          departments: DEPARTMENTS,
+          roles: ROLES,
+          shifts: SHIFTS,
+          classLevels: CLASS_LEVELS,
+        }
+      },
+      300,
+    ) // 5 minutes cache
+
+    endTimer()
+    return Response.json(result)
+  } catch (error) {
+    endTimer()
+    console.error("[students] GET error:", error)
+    return new Response("Failed to fetch students", { status: 500 })
+  }
 }
 
 export async function PUT(req: NextRequest) {
-  const db = await getDb()
-  const body = await req.json()
-  if (!body.id) return new Response("Missing id", { status: 400 })
-  const id = new ObjectId(body.id)
-  const { id: _omit, password, photoUrl, ...rest } = body
+  const endTimer = perfMonitor.start("api-students-put")
 
   try {
+    const db = await getDb()
+    const body = await req.json()
+    if (!body.id) return new Response("Missing id", { status: 400 })
+    const id = new ObjectId(body.id)
+    const { id: _omit, password, photoUrl, ...rest } = body
+
     const currentStudent = await db.collection("students").findOne({ _id: id })
     if (!currentStudent) return new Response("Student not found", { status: 404 })
 
@@ -259,7 +288,7 @@ export async function PUT(req: NextRequest) {
     if (body.email && Object.keys(changes).length > 0) {
       const emailSent = await sendUpdateNotificationEmail({
         to: body.email,
-        subject: `Account Updated - ${body.institutionName} Student Portal`,
+        subject: `Account Updated - GenAmplify Student Portal`,
         name: body.name || currentStudent.name,
         code: currentStudent.rollNumber,
         shift: body.shift || currentStudent.shift,
@@ -278,21 +307,27 @@ export async function PUT(req: NextRequest) {
       }
     }
 
+    apiCache.invalidatePattern("^students:")
+
+    endTimer()
     return Response.json({ ok: true, message: "Student updated successfully" })
   } catch (error) {
+    endTimer()
     console.error("[students] Failed to update student:", error)
     return new Response("Failed to update student", { status: 500 })
   }
 }
 
 export async function DELETE(req: NextRequest) {
-  const db = await getDb()
-  const idStr = new URL(req.url).searchParams.get("id")
-  if (!idStr) return new Response("Missing id", { status: 400 })
-
-  const objectId = new ObjectId(idStr)
+  const endTimer = perfMonitor.start("api-students-delete")
 
   try {
+    const db = await getDb()
+    const idStr = new URL(req.url).searchParams.get("id")
+    if (!idStr) return new Response("Missing id", { status: 400 })
+
+    const objectId = new ObjectId(idStr)
+
     const student = await db.collection("students").findOne({ _id: objectId })
     if (!student) {
       return new Response("Student not found", { status: 404 })
@@ -321,12 +356,16 @@ export async function DELETE(req: NextRequest) {
       return new Response("Student not found", { status: 404 })
     }
 
+    apiCache.invalidatePattern("^students:")
+
+    endTimer()
     return Response.json({
       ok: true,
       message: `Student deleted successfully. Removed ${attendanceResult.deletedCount} attendance records.`,
       deletedAttendanceRecords: attendanceResult.deletedCount,
     })
   } catch (error) {
+    endTimer()
     console.error("[students] Failed to delete student:", error)
     return new Response("Failed to delete student", { status: 500 })
   }
