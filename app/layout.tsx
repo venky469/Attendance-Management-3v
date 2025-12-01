@@ -43,9 +43,9 @@ export const metadata: Metadata = {
     telephone: false,
   },
   icons: {
-    icon: "/logo3.jpg",
-    shortcut: "/logo3.jpg",
-    apple: "/logo3.jpg",
+    icon: "/logoupdate.png",
+    shortcut: "/logoupdate.png",
+    apple: "/logoupdate.png",
   },
 }
 
@@ -63,8 +63,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
-        <link rel="preload" href="/logo3.jpg" as="image" />
-        <link rel="apple-touch-icon" href="/logo3.jpg" />
+        <link rel="preload" href="/logoupdate.png" as="image" />
+        <link rel="apple-touch-icon" href="/logoupdate.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="mobile-web-app-capable" content="yes" />

@@ -315,7 +315,7 @@ export default function LoginPage() {
         <div className="text-center mb-6 md:mb-8 animate-in fade-in slide-in-from-top duration-700">
           <div className="inline-flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
             <img
-              src="/logo3.png"
+              src="/logoupdate.png"
               alt="FaceAttendence"
               className="h-16 w-16 md:h-24 md:w-24 rounded-xl md:rounded-2xl shadow-lg object-cover"
             />
